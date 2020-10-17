@@ -3,6 +3,7 @@ from tkinter import Tk, Canvas
 import time
 from utils import coordination_calculator as cc
 from Grid import Grid
+from Target import Target
 
 class Engine:
     def __init__(self, c_trans, c_rot):
@@ -42,6 +43,7 @@ if __name__ == "__main__":
                np.array([np.pi/2-.5, np.pi/4, .3]).reshape(3, 1))
 
     e.addGeometry([Grid(20, 20)])
+    e.addGeometry([Target(np.array([0, 50, 50]).reshape(3, 1))])
 
     while(True):
         e.update()

@@ -16,7 +16,7 @@ class Point(Entity):
 
     def draw(self, canvas, c_rotmat, c_width, c_height):
         p_c = np.matmul(c_rotmat, self.p)
-        p_image = np.array([p_c[0][0] + self.canvas_width / 2, p_c[1][0] + self.canvas_height / 2]).reshape(2, 1)
+        p_image = np.array([p_c[0][0] + c_width/2, p_c[1][0] + c_height/2]).reshape(2, 1)
 
         x0 = p_image[0][0] - self.thickness/2
         y0 = p_image[1][0] - self.thickness/2
