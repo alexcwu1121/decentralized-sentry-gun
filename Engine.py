@@ -16,7 +16,9 @@ class Engine:
 
         self.initTk()
 
-        self.entities = []
+        # Keeping only primitives is stupid but that's okay
+        self.static_entities = []
+        self.dynamic_entities = []
 
     def initTk(self):
         self.master = Tk()
@@ -25,19 +27,25 @@ class Engine:
                    height=self.canvas_height)
         self.canvas.pack()
 
-    def addEntities(self, entities):
-        self.entities.extend(entities)
+    def addStaticEntities(self, entities):
+        self.static_entities.extend(entities)
+
+    def addDynamicEntities(self, entities):
+        self.dynamic_entities.extend(entities)
 
     def update(self):
-        for entity in self.entities:
+        for entity in self.static_entities:
             entity.draw(self.canvas, self.c_rotmat, self.canvas_width, self.canvas_height)
+        for entity in self.dynamic_entities:
+            entity.draw(self.canvas, self.c_rotmat, self.canvas_width, self.canvas_height)
+        self.dynamic_entities.clear()
         self.master.update()
 
 if __name__ == "__main__":
     e = Engine(np.array([150, 150, 150]).reshape(3, 1),
                np.array([np.pi/2-.5, np.pi/4, .3]).reshape(3, 1))
 
-    e.addEntities(Grid(20, 20).getEntities())
+    e.addStaticEntities(Grid(20, 20).getEntities())
 
     while(True):
         e.update()
