@@ -4,6 +4,7 @@ import time
 from utils import coordination_calculator as cc
 from Grid import Grid
 from Target import Target
+from CameraTurret import CameraTurret
 
 class Engine:
     def __init__(self, c_trans, c_rot):
@@ -40,10 +41,11 @@ class Engine:
 
 if __name__ == "__main__":
     e = Engine(np.array([150, 150, 150]).reshape(3, 1),
-               np.array([np.pi/2-.5, np.pi/4, .3]).reshape(3, 1))
+               np.array([np.pi/2-.4, np.pi/4 + .2, .3]).reshape(3, 1))
 
     e.addGeometry([Grid(20, 20)])
-    e.addGeometry([Target(np.array([0, 50, 50]).reshape(3, 1))])
+    e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1))])
+    e.addGeometry([CameraTurret()])
 
     while(True):
         e.update()

@@ -1,5 +1,5 @@
 import numpy as np
-from Entity import Point
+from Entity import Point, Line
 from Geometry import Geometry
 
 class Target(Geometry):
@@ -9,4 +9,9 @@ class Target(Geometry):
         self.pos = pos
 
     def getEntities(self):
-        return [Point(self.pos, 'red', 20)]
+        return [Line(np.array([0, self.pos[1][0], self.pos[2][0]]).reshape(3, 1), self.pos, "red", 2),
+                Line(np.array([0, self.pos[1][0], self.pos[2][0]]).reshape(3, 1),
+                     np.array([0, self.pos[1][0], 0]).reshape(3, 1), "red", 2),
+                Line(np.array([0, self.pos[1][0], self.pos[2][0]]).reshape(3, 1),
+                     np.array([0, 0, self.pos[2][0]]).reshape(3, 1), "red", 2),
+            Point(self.pos, 'red', 20)]
