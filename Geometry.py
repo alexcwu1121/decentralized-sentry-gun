@@ -5,4 +5,4 @@ class Geometry(ABC):
         self.entities = []
 
     def getEntities(self):
-        return self.entities
+        pass
