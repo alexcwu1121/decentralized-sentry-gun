@@ -1,9 +1,10 @@
 import numpy as np
 from Entity import Line
+from Geometry import Geometry
 
-class Grid:
+class Grid(Geometry):
     def __init__(self, ang_len, end_len):
-        self.entities = []
+        super().__init__()
         self.ang_len = ang_len
         self.end_len = end_len
 
@@ -30,6 +31,3 @@ class Grid:
         Line(np.array([self.ang_len, 0, self.ang_len]).reshape(3, 1), np.array([self.ang_len, 0, 0]).reshape(3, 1), "black", 2),
         Line(np.array([0, 0, 200]).reshape(3, 1), np.array([0, self.end_len, 200]).reshape(3, 1), "blue", 2),
         Line(np.array([0, 0, 200]).reshape(3, 1), np.array([self.end_len, 0, 200]).reshape(3, 1), "blue", 2)]
-
-    def getEntities(self):
-        return self.entities
