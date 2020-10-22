@@ -1,25 +1,30 @@
 import numpy as np
 from math import *
 
+
 def xRot(theta):
     return np.array([[1, 0, 0],
                    [0, cos(theta), -sin(theta)],
                    [0, sin(theta), cos(theta)]])
+
 
 def yRot(theta):
     return np.array([[cos(theta), 0, -sin(theta)],
                    [0, 1, 0],
                    [-sin(theta), 0, cos(theta)]])
 
+
 def zRot(theta):
     return np.array([[cos(theta), -sin(theta), 0],
                    [sin(theta), cos(theta), 0],
                    [0, 0, 1]])
 
+
 # enter the axes and the angles to calculate the final rotation matrix
 def Rodriguez(alpha, theta, gamma):
     #print(rot(axis1, theta1), "\n", rot(axis2, theta2), "\n", rot(axis3, theta3))
     return zRot(gamma) @ yRot(theta) @ xRot(alpha)
+
 
 # enter the unit vector the arm rotate about to calculate the rotation matrix
 def rotation2(x, y, z, theta):
