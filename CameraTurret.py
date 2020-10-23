@@ -5,7 +5,7 @@ from utils.coordination_calculator import xRot, yRot, zRot
 
 
 class CameraTurret(Geometry):
-    def __init__(self, q1=0, q2=0, pOffset=np.array([0, 50, 0]).reshape(3, 1),
+    def __init__(self, targets = None, q1=0, q2=0, pOffset=np.array([0, 50, 0]).reshape(3, 1),
                  p12=np.array([0, 0, 75]).reshape(3, 1),
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__()
@@ -14,6 +14,7 @@ class CameraTurret(Geometry):
         self.pOffset = pOffset
         self.p12 = p12
         self.orig = orig
+        self.targets = targets
 
     def getEntities(self):
         R01 = zRot(self.q1)
@@ -21,6 +22,8 @@ class CameraTurret(Geometry):
 
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
+
+        target_p = self.orig if self.targets is None else self.targets[0].pos
 
         return [Line(np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1), p_2, "black", 2),
                 Line(np.array([0, p_2[1][0], 0]).reshape(3, 1), np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1),
@@ -30,12 +33,13 @@ class CameraTurret(Geometry):
 
                 Line(self.orig, p_1, "orange", 8),
                 Line(p_1, p_2, "orange", 8),
+                DottedLine(self.orig, self.representTarget(target_p), "red", 2, 10),
                 Point(self.orig, 'black', 10),
                 Point(p_1, 'black', 10),
                 Point(p_2, 'black', 10),
                 ]
 
-    def representTarget(self, distance = np.array([0, 0, 0]).reshape(3, 1)):
+    def representTarget(self, distance=np.array([0, 0, 0]).reshape(3, 1)):
         # Define POE parameters
         # h1 = [0, 0, 1]T or ez
         # h2 = [1, 0, 0]T or ex
@@ -71,5 +75,5 @@ class CameraTurret(Geometry):
 
         target = T01 @ T12 @ T2T
 
-        return target
+        return target[0:3, 3:4]
 
