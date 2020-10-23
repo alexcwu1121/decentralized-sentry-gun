@@ -1,5 +1,5 @@
 import numpy as np
-from Entity import Line, Point
+from Entity import Line, Point, DottedLine
 from Geometry import Geometry
 from utils.coordination_calculator import xRot, yRot, zRot
 
@@ -10,6 +10,7 @@ class CameraTurret(Geometry):
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__()
         self.q1 = q1
+        self.q2 = q2
         self.pOffset = pOffset
         self.p01 = p01
         self.orig = orig
@@ -31,7 +32,7 @@ class CameraTurret(Geometry):
                 Line(p_1, p_2, "orange", 8),
                 Point(self.orig, 'black', 10),
                 Point(p_1, 'black', 10),
-                Point(p_2, 'black', 10)
+                Point(p_2, 'black', 10),
                 ]
 
     def get_coordinate(self, distance):
