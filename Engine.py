@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     e.addGeometry([Grid(20, 20)])
     e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1))])
-    e.addGeometry([CameraTurret()])
+    e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))])])
 
     while(True):
         e.update()
