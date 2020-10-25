@@ -59,9 +59,11 @@ class CameraTurret(Geometry):
             c_tc = R20 @ c_t
 
             # Set axes relative to Aruco camera axis
+            # Produces a 'tvec', a pinhole camera translation vector given by Aruco
             #c_tc = xRot(-np.pi/2) @ yRot(np.pi) @ c_tc
 
-            # TODO Rotate axes back to camera frame
+            # TODO Rotate axes back to camera frame.
+            # Rotates tvec to camera frame. Final offset sent to POE
 
             t_links.append(c_tc)
 
