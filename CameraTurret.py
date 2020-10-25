@@ -23,7 +23,10 @@ class CameraTurret(Geometry):
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
 
-        target_p = self.orig if self.targets is None else self.targets[0].pos
+        #target_p = self.orig if self.targets is None else self.targets[0].pos
+        lens_pos = self.representTarget() + self.orig
+        target_p = self.getTargetLinks(lens_pos)
+        target_rep = self.representTarget(target_p[0]) + self.orig
 
         return [Line(np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1), p_2, "black", 2),
                 Line(np.array([0, p_2[1][0], 0]).reshape(3, 1), np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1),
@@ -33,11 +36,36 @@ class CameraTurret(Geometry):
 
                 Line(self.orig, p_1, "orange", 8),
                 Line(p_1, p_2, "orange", 8),
-                DottedLine(self.orig, self.representTarget(target_p), "red", 2, 10),
+                DottedLine(self.orig, target_rep, "red", 2, 10),
+                DottedLine(lens_pos, target_rep, "blue", 2, 10),
                 Point(self.orig, 'black', 10),
                 Point(p_1, 'black', 10),
                 Point(p_2, 'black', 10),
                 ]
+
+    def getTargetLinks(self, lens_pos):
+        t_links = []
+        for target in self.targets:
+            # Simulate tvecs coming from Aruco by representing distances between
+            # the camera lens and each target in the camera lens' frame
+            c_t = target.pos - lens_pos
+
+            # (c_t)c = R20(c_t)o
+            R01 = zRot(self.q1)
+            R12 = xRot(self.q2)
+
+            R02 = R01 @ R12
+            R20 = R02.transpose()
+            c_tc = R20 @ c_t
+
+            # Set axes relative to Aruco camera axis
+            #c_tc = xRot(-np.pi/2) @ yRot(np.pi) @ c_tc
+
+            # TODO Rotate axes back to camera frame
+
+            t_links.append(c_tc)
+
+        return t_links
 
     def representTarget(self, distance=np.array([0, 0, 0]).reshape(3, 1)):
         # Define POE parameters
@@ -76,4 +104,3 @@ class CameraTurret(Geometry):
         target = T01 @ T12 @ T2T
 
         return target[0:3, 3:4]
-
