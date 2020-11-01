@@ -13,9 +13,10 @@ class GunTurret(Geometry):
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__()
         self.v0 = v0
-        self.p01 = orig + p01
+        self.p01 = p01
         self.p12 = p12
         self.pOffset = pOffset
+        self.orig = orig
 
         #  Target
         self.p0T = p0T
@@ -26,7 +27,39 @@ class GunTurret(Geometry):
         self.dh = -(1/2) * 9.81 * sp.cos(self.q2) * self.t**2 + self.v0 * self.t
 
     def getEntities(self):
-        return 0
+        q1, q2, toa, f = self.inverseKin()
+
+        R01 = zRot(q1)
+        R12 = xRot(q2)
+
+        p_1 = self.orig + self.p01 + R01 @ self.p12
+        p_2 = p_1 + R01 @ R12 @ self.pOffset
+
+        path_entities = self.trajectoryPath(toa, f, 30)
+
+        return [Line(np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1), p_2, "black", 2),
+                Line(np.array([0, p_2[1][0], 0]).reshape(3, 1), np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1),
+                     "black", 2),
+                Line(np.array([p_2[0][0], 0, 0]).reshape(3, 1), np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1),
+                     "black", 2),
+
+                Line(self.orig + self.p01, p_1, "orange", 8),
+                Line(p_1, p_2, "orange", 8),
+
+                Point(self.orig + self.p01, 'black', 10),
+                Point(p_1, 'black', 10),
+                Point(p_2, 'black', 10),
+                ] + path_entities
+
+    def trajectoryPath(self, toa, f, steps):
+        interval = toa/steps
+        entities = []
+        for i in range(steps + 1):
+            t = i * interval
+            p = f.subs(self.t, t)
+            np_p = self.orig + np.array(p).astype(np.float64)
+            entities.append(Point(np_p, 'black', 2))
+        return entities
 
     def inverseKin(self):
         # Arrange kinematic chain into subproblem 4
@@ -37,6 +70,7 @@ class GunTurret(Geometry):
         Rzq1 = sp.Matrix([[sp.cos(self.q1), -sp.sin(self.q1), 0],
                             [sp.sin(self.q1), sp.cos(self.q1), 0],
                             [0, 0, 1]])
+
         expr = exT * Rzq1 * (sp.Matrix(self.p0T) - sp.Matrix(self.p01))
 
         p2T = sp.Matrix(self.pOffset) + sp.Matrix([[0], [self.dh], [self.dv]])
@@ -45,31 +79,38 @@ class GunTurret(Geometry):
         # Solve kinematic chain for q1. Only ever one solution.
         q1_sol = sp.solve(expr - d, self.q1)[0][0]
 
-        # Substitute q1 into kinematic chain and solve for q2, again using subproblem 4
+        # Substitute q1 into kinematic chain and solve for q2 using subproblem 3
         # POT - P01 - R12 @ P12 = R12 @ R2T @ P2T
         # R12T @ (POT - P01 - R12 @ P12) = R2T @ P2T
-        # ezT * R12T @ (POT - P01 - R12 @ P12) = ezT * R2T @ P2T
+        # |R12T @ (POT - P01 - R12 @ P12)| = |R2T @ P2T|
+        # lhs_norm = rhs_norm
+        #
+        # Since system has an extra t variable due to trajectory, use z relation
 
         lhs = Rzq1.T * (sp.Matrix(self.p0T) - sp.Matrix(self.p01) - Rzq1 * sp.Matrix(self.p12))
         lhs_val = lhs.subs(self.q1, q1_sol)
-        print(lhs_val)
+
+        lhs_norm = (lhs_val[0]**2 + lhs_val[1]**2 + lhs_val[2]**2)**.5
+        #print(lhs_norm)
+        lhs_z = lhs_val[2]
 
         Rxq2 = sp.Matrix([[1, 0, 0],
                          [0, sp.cos(self.q2), -sp.sin(self.q2)],
                          [0, sp.sin(self.q2), sp.cos(self.q2)]])
 
         rhs = Rxq2 * p2T
-        rhs_val = rhs.subs(self.q1, q1_sol)
-        print(rhs_val)
+        rhs_norm = (rhs[0]**2 + rhs[1]**2 + rhs[2]**2)**.5
+        #print(rhs_norm)
+        rhs_z = rhs[2]
 
-        #over_sol = sp.nonlinsolve(lhs_val - rhs_val, [self.q2, self.t])
-        over_sol = sp.nsolve((lhs_val - rhs_val)[1:4,:], [self.q2, self.t], [0, 0], modules = ['mpmath'])
-        print(over_sol)
+        esys = sp.Matrix([[lhs_norm - rhs_norm], [lhs_z - rhs_z]])
 
-        print(rhs_val.subs([(self.q2, over_sol[0]), (self.t, over_sol[1])]))
+        over_sol = sp.nsolve((esys), [self.q2, self.t], [0, 0], modules=['mpmath'])
+        #print(over_sol)
 
-        return 0
+        return -q1_sol, over_sol[0], over_sol[1], (self.p01 + Rzq1*self.p12 + Rzq1*Rxq2*p2T).subs([[self.q1, -q1_sol],
+                                                                                                   [self.q2, over_sol[0]]])
 
 if __name__ == "__main__":
-    gt = GunTurret(300, [0, 100, 100])
+    gt = GunTurret(100, [-100, 50, 100])
     gt.inverseKin()

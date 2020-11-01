@@ -5,6 +5,7 @@ from utils import coordination_calculator as cc
 from Grid import Grid
 from Target import Target
 from CameraTurret import CameraTurret
+from GunTurret import GunTurret
 
 class Engine:
     def __init__(self, c_trans, c_rot):
@@ -46,6 +47,7 @@ if __name__ == "__main__":
     e.addGeometry([Grid(20, 20)])
     e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1))])
     e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))])])
+    e.addGeometry([GunTurret(40, [-100, 50, 100])])
 
     while(True):
         e.update()
