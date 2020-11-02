@@ -23,8 +23,8 @@ class GunTurret(Geometry):
 
         # Trajectory calculations at angle
         self.q1, self.q2, self.t = sp.symbols('q1 q2 t')
-        self.dv = -(1/2) * 9.81 * sp.sin(self.q2) * self.t**2
-        self.dh = -(1/2) * 9.81 * sp.cos(self.q2) * self.t**2 + self.v0 * self.t
+        self.dv = -(1/2) * 9.81 * sp.cos(self.q2) * self.t**2
+        self.dh = -(1/2) * 9.81 * sp.sin(self.q2) * self.t**2 + self.v0 * self.t
 
     def getEntities(self):
         q1, q2, toa, f = self.inverseKin()
