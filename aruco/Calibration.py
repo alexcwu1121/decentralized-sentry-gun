@@ -15,6 +15,9 @@ ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_5X5_1000)
 # For more accurate but longer calibration, increase this number
 NUM_IMAGES = 10
 
+# Image is captured by pressing this key
+CAPTURE_KEY = ord(' ')
+
 # Create constants to be passed into OpenCV and Aruco methods
 CHARUCO_BOARD = aruco.CharucoBoard_create(
         squaresX=CHARUCOBOARD_COLCOUNT,
@@ -33,25 +36,23 @@ image_size = None # Determined at runtime
 # All images will be the same size because they will be taken with the same camera
 # Each image should have a clear visual of each of the markers on a ChAruco Board
 cam = cv2.VideoCapture(0)
-images = [] * (NUM_IMAGES+1)
+images = [0] * NUM_IMAGES
 count = 0
-# Count goes to 11 because first image is usually captured while camera is starting up, so not accurate
-while cam.isOpened() and count < NUM_IMAGES+1:
-    k = cv2.waitKey(5000)
-    if k == 27:
-        cv2.destroyAllWindows()
+while cam.isOpened() and count < NUM_IMAGES:
+    ret, img = cam.read()
+    cv2.imshow('Camera', img)
+
+    k = cv2.waitKey(1)
+    if k & 0xFF == ord('q'):
         break
 
-    ret, img = cam.read()
-
-    if ret == True:
+    if ret == True and k == CAPTURE_KEY:
         images[count] = img
         count += 1
         print("Image captured")
 
-        cv2.imshow("Image " + str(count), img)
-
 cam.release()
+cv2.destroyAllWindows()
 
 # Loop through images
 count = 0
