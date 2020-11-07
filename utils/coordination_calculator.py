@@ -1,6 +1,6 @@
 import numpy as np
 from math import *
-
+import sympy as sp
 
 def xRot(theta):
     return np.array([[1, 0, 0],
@@ -19,12 +19,41 @@ def zRot(theta):
                    [sin(theta), cos(theta), 0],
                    [0, 0, 1]])
 
+def xRot_s(theta):
+    return sp.Matrix([[1, 0, 0],
+                   [0, sp.cos(theta), -sp.sin(theta)],
+                   [0, sp.sin(theta), sp.cos(theta)]])
+
+
+def yRot_s(theta):
+    return sp.Matrix([[sp.cos(theta), 0, -sp.sin(theta)],
+                   [0, 1, 0],
+                   [-sp.sin(theta), 0, sp.cos(theta)]])
+
+
+def zRot_s(theta):
+    return sp.Matrix([[sp.cos(theta), -sp.sin(theta), 0],
+                   [sp.sin(theta), sp.cos(theta), 0],
+                   [0, 0, 1]])
 
 # enter the axes and the angles to calculate the final rotation matrix
 def Rodriguez(alpha, theta, gamma):
     #print(rot(axis1, theta1), "\n", rot(axis2, theta2), "\n", rot(axis3, theta3))
     return zRot(gamma) @ yRot(theta) @ xRot(alpha)
 
+# Could overload for np or sp matrices, but only works on sp for now
+def skewsym(p):
+    return sp.Matrix([[0, -p[2, 0], p[1, 0]],
+                     [p[2, 0], 0, -p[0, 0]],
+                     [-p[1, 0], p[0, 0], 0]])
+
+# Could overload for np or sp matrices, but only works on sp for now
+def phi(R, p):
+    phi_r = sp.zeros(6)
+    phi_r[0:3, 0:3] = R
+    phi_r[3:6, 3:6] = R
+    phi_r[0:3, 3:6] = -R * skewsym(p)
+    return phi_r
 
 # enter the unit vector the arm rotate about to calculate the rotation matrix
 def rotation2(x, y, z, theta):
