@@ -106,3 +106,7 @@ class CameraTurret(Geometry):
         target = T01 @ T12 @ T2T
 
         return target[0:3, 3:4]
+
+    # Unnecessary for cameraTurret for now
+    def scurvePath(self):
+        pass
