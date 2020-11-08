@@ -49,6 +49,26 @@ if __name__ == "__main__":
     e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))])])
     e.addGeometry([GunTurret(40, [-100, 50, 100])])
 
-    while(True):
+    moving = False
+    current_matrix = "initial_configuration"
+    count = 0
+    time = 0
+    period = 0.01
+    while True:
         e.update()
-        time.sleep(1)
+        time.sleep(period)
+        """
+        need to do: receive the path matrix with a non-block algorithm
+        position_matrix = input[1]
+        stop time = time + input[0]
+        """
+        stop_time = 0
+        if not moving:
+            current_matrix = current_matrix
+        else:
+            if time <= stop_time:
+                current_matrix = "position_matrix"[count]
+                count += 1
+        time += period
+
+
