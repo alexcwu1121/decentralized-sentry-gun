@@ -6,3 +6,6 @@ class Geometry(ABC):
 
     def getEntities(self):
         pass
+
+    def scurvePath(self):
+        pass
