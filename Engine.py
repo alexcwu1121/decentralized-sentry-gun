@@ -40,6 +40,7 @@ class Engine:
                 entity.draw(self.canvas, self.c_rotmat, self.canvas_width, self.canvas_height)
         self.master.update()
 
+
 if __name__ == "__main__":
     e = Engine(np.array([150, 150, 150]).reshape(3, 1),
                np.array([np.pi/2-.4, np.pi/4 + .2, .3]).reshape(3, 1))
@@ -49,26 +50,29 @@ if __name__ == "__main__":
     e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))])])
     e.addGeometry([GunTurret(40, [-100, 50, 100])])
 
-    moving = False
     current_matrix = "initial_configuration"
     count = 0
     time = 0
-    period = 0.01
+    """
+    Receive a input which input[0] is the total time and input1] is the matrix of path at
+    each point of time, (len(matrix)-1) * time period = total time
+    """
+    stop_time = "input"[0]
+    confiuration_matrix = "input"[1]
+    period = float(stop_time) / (len(confiuration_matrix) - 1)
+    moving = True
     while True:
         e.update()
         time.sleep(period)
-        """
-        need to do: receive the path matrix with a non-block algorithm
-        position_matrix = input[1]
-        stop time = time + input[0]
-        """
         stop_time = 0
         if not moving:
             current_matrix = current_matrix
         else:
             if time <= stop_time:
-                current_matrix = "position_matrix"[count]
+                current_matrix = confiuration_matrix[count]
                 count += 1
+            else:
+                move = False
         time += period
 
 
