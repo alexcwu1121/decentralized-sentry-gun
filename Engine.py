@@ -50,29 +50,26 @@ if __name__ == "__main__":
     e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))])])
     e.addGeometry([GunTurret(40, [-100, 50, 100])])
 
-    current_matrix = "initial_configuration"
+    current_configuration = "initial_configuration"
     count = 0
     time = 0
-    """
-    Receive a input which input[0] is the total time and input1] is the matrix of path at
-    each point of time, (len(matrix)-1) * time period = total time
-    """
-    stop_time = "input"[0]
-    confiuration_matrix = "input"[1]
-    period = float(stop_time) / (len(confiuration_matrix) - 1)
-    moving = True
+    period = 0.01
+    stop_time = 999
+    moving = False
     while True:
         e.update()
-        time.sleep(period)
-        stop_time = 0
         if not moving:
-            current_matrix = current_matrix
+            coordinate = "receive from camera turret"
+            confiuration_matrix = "calculate path with current configuration and the coordinate"
+            run_time = "should return together with the matrix"
+            period = float(run_time) / (len(confiuration_matrix) - 1)
+            stop_time = time.clock() + run_time
         else:
-            if time <= stop_time:
-                current_matrix = confiuration_matrix[count]
+            if time.clock() <= stop_time:
+                current_configuration = confiuration_matrix[count]
                 count += 1
             else:
                 move = False
-        time += period
+        time.sleep(period)
 
 
