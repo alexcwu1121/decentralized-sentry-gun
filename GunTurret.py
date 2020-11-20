@@ -7,12 +7,14 @@ import math
 import matplotlib.pyplot as plt
 
 class GunTurret(Geometry):
-    def __init__(self, v0, p0T,
+    def __init__(self, q1_given, q2_given, v0, p0T,
                  p01=np.array([0, -100, 0]).reshape(3, 1),
                  p12=np.array([0, 0, 75]).reshape(3, 1),
                  pOffset=np.array([0, 50, 0]).reshape(3, 1),
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__()
+        self.q1_given = q1_given
+        self.q2_given = q2_given
         self.v0 = v0
         self.p01 = p01
         self.p12 = p12
@@ -32,7 +34,18 @@ class GunTurret(Geometry):
         self.T, self.J = self.fwdkin()
 
     def getEntities(self):
-        q1, q2, toa, f = self.inverseKin()
+        # Two methods of displaying the gunturret (redundancy is intended):
+        # 1. Run inverse kinematics and compute q1 and q2, then use computed f and toa to form a path.
+        # 2. Plug in provided q1 and q2 into homogenous transform and find f. Apply pathing with some large toa.
+
+        # Method 1
+        #q1, q2, toa, f = self.inverseKin()
+
+        # Method 2
+        q1 = self.q1_given
+        q2 = self.q2_given
+        toa = 10
+        f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
 
         R01 = zRot(q1)
         R12 = xRot(q2)
@@ -43,7 +56,7 @@ class GunTurret(Geometry):
         # q_init q_dest coeff_s time_elapsed time_step
         q_mat, timestamps = self.scurvePath(np.array([0, 0]).reshape(2, 1),
                                 np.array([q1, q2]).reshape(2, 1),
-                                5, 2, .05)
+                                6, 1.5, .05)
 
         #plt.plot(timestamps, q_mat[0:1,:], 'ro', markersize=5)
         #plt.plot(timestamps, q_mat[1:2,:], 'bo', markersize=5)
