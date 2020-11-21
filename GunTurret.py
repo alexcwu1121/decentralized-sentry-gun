@@ -7,12 +7,14 @@ import math
 import matplotlib.pyplot as plt
 
 class GunTurret(Geometry):
-    def __init__(self, v0, p0T,
+    def __init__(self, q1_given, q2_given, v0, p0T,
                  p01=np.array([0, -100, 0]).reshape(3, 1),
                  p12=np.array([0, 0, 75]).reshape(3, 1),
                  pOffset=np.array([0, 50, 0]).reshape(3, 1),
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__()
+        self.q1_given = q1_given
+        self.q2_given = q2_given
         self.v0 = v0
         self.p01 = p01
         self.p12 = p12
@@ -31,8 +33,28 @@ class GunTurret(Geometry):
         # Derive forms of homogenous transform T and Jacobian J
         self.T, self.J = self.fwdkin()
 
+    def setQ1(self, q1):
+        self.q1_given = q1
+
+    def setQ2(self, q2):
+        self.q2_given = q2
+
+    def setP0T(self, p0T):
+        self.p0T = p0T
+
     def getEntities(self):
-        q1, q2, toa, f = self.inverseKin()
+        # Two methods of displaying the gunturret (redundancy is intended):
+        # 1. Run inverse kinematics and compute q1 and q2, then use computed f and toa to form a path.
+        # 2. Plug in provided q1 and q2 into homogenous transform and find f. Apply pathing with some large toa.
+
+        # Method 1
+        #q1, q2, toa, f = self.inverseKin()
+
+        # Method 2
+        q1 = self.q1_given
+        q2 = self.q2_given
+        toa = 10
+        f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
 
         R01 = zRot(q1)
         R12 = xRot(q2)
@@ -41,12 +63,12 @@ class GunTurret(Geometry):
         p_2 = p_1 + R01 @ R12 @ self.pOffset
 
         # q_init q_dest coeff_s time_elapsed time_step
-        q_mat, timestamps = self.scurvePath(np.array([0, 0]).reshape(2, 1),
+        q_mat = self.scurvePath(np.array([0, 0]).reshape(2, 1),
                                 np.array([q1, q2]).reshape(2, 1),
-                                5, 2, .05)
+                                6, 1.5, .05)
 
-        #plt.plot(timestamps, q_mat[0:1,:], 'ro', markersize=5)
-        #plt.plot(timestamps, q_mat[1:2,:], 'bo', markersize=5)
+        #plt.plot(q_mat[0:1,:], q_mat[1:2,:], 'ro', markersize=5)
+        #plt.plot(q_mat[0:1,:], q_mat[2:3,:], 'bo', markersize=5)
         #plt.ylabel('Angle (rad)')
         #plt.xlabel('Timestep (s)')
         #plt.show()
@@ -194,6 +216,10 @@ class GunTurret(Geometry):
         # Find unit vector and norm from init_pos to dest_pos
         #norm = np.linalg.norm(dest_q - init_q)
         norm = ((dest_q[0, 0] - init_q[0, 0])**2 + (dest_q[1, 0] - init_q[1, 0])**2)**.5
+
+        if norm == 0:
+            return np.array([[0, dest_q[0][0], dest_q[1][0]]]).T
+
         u = (dest_q - init_q) / norm
 
         # Determine S-Curve constants
@@ -206,23 +232,19 @@ class GunTurret(Geometry):
         # Find number of time steps and allocate path matrix at size
         # q x s, where q is the number of joints and s is the number of time steps
         num_steps = math.ceil(t_elapse / time_step)
-        q_steps = np.zeros([self.num_q, num_steps])
-        #q_steps[:, 0:1] = init_q
-        timestamps = np.zeros([1, num_steps])
+        q_steps = np.zeros([self.num_q+1, num_steps])
 
         for i in range(num_steps):
             # Find current distance along unit vector
             s = norm / (1 + math.e ** (-coeff_s * ((i * time_step) - t0)))
 
-            # Save timestamp for visualization
-            timestamps[0,i:i+1] = (i * time_step)
-
             # Project along unit vector and add initial q
             q_step = s * u + init_q
 
-            q_steps[:,i:i+1] = q_step
+            q_steps[0, i:i+1] = (i * time_step)
+            q_steps[1:3,i:i+1] = q_step
 
-        return q_steps, timestamps
+        return q_steps
 
 if __name__ == "__main__":
     gt = GunTurret(100, [-100, 50, 100])
