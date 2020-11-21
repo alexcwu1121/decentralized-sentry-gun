@@ -16,7 +16,7 @@ class CameraTurret(Geometry):
         self.orig = orig
         self.targets = targets
 
-    def getEntities(self):
+    def getEntities(self, elapsed_time = 0):
         R01 = zRot(self.q1)
         R12 = xRot(self.q2)
 
@@ -24,9 +24,11 @@ class CameraTurret(Geometry):
         p_2 = p_1 + R01 @ R12 @ self.pOffset
 
         #target_p = self.orig if self.targets is None else self.targets[0].pos
-        lens_pos = self.representTarget() + self.orig
+        lens_pos = self.representTarget() + self.orig # getPositionInSweep(elapsed_time)
         target_p = self.getTargetLinks(lens_pos)
         target_rep = self.representTarget(target_p[0]) + self.orig
+
+        print(lens_pos, target_p, target_rep)
 
         return [Line(np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1), p_2, "black", 2),
                 Line(np.array([0, p_2[1][0], 0]).reshape(3, 1), np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1),
@@ -42,6 +44,9 @@ class CameraTurret(Geometry):
                 Point(p_1, 'black', 10),
                 Point(p_2, 'black', 10),
                 ]
+
+    def zeroConfiguration(self):
+        return self.orig + self.p12 + self.pOffset
 
     def getTargetLinks(self, lens_pos):
         t_links = []
@@ -106,6 +111,11 @@ class CameraTurret(Geometry):
         target = T01 @ T12 @ T2T
 
         return target[0:3, 3:4]
+
+    def getPositionInSweep(self, t):
+        # sinusoidal sweep
+        # assuming t=0 is zero configuration, and camera travels with a constant velocity of 10 units/s
+        pass
 
     # Unnecessary for cameraTurret for now
     def scurvePath(self):
