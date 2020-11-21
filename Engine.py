@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     """current_configuration = "initial_configuration"
     count = 0
-    time = 0
+    #time = 0
     period = 0.01
     stop_time = 999
     moving = False
