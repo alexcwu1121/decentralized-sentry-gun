@@ -146,7 +146,10 @@ class HardwareInterface():
             self.receivePath()
 
             # If path steps exist and sufficient time has elapsed since the last write, write again
-            if (self.gunPath is not None) and (time.time() - prev_gun_write >= gun_write_delay):
+            if  (self.gunPath is not None) and\
+                    (self.gunPath.shape[1] != 0) and\
+                    (time.time() - prev_gun_write >= gun_write_delay):
+
                 # Write config
                 self.writeGunS(self.gunPath[1:3, 0:1])
                 prev_gun_write = time.time()
@@ -161,7 +164,10 @@ class HardwareInterface():
                 # Pop current config
                 self.gunPath = self.gunPath[0:3, 1:]
 
-            if (self.cameraPath is not None) and (time.time() - prev_camera_write >= camera_write_delay):
+            if (self.cameraPath is not None) and\
+                    (self.cameraPath.shape[1] != 0) and\
+                    (time.time() - prev_camera_write >= camera_write_delay):
+
                 # Write config
                 self.writeCameraS(self.cameraPath[1:3, 0:1])
                 prev_camera_write = time.time()
@@ -178,4 +184,5 @@ class HardwareInterface():
 
             # Display simulation.
             self.sim_out.update()
-            time.sleep(.01)
+            # Hardware interface updates 50 times a second
+            time.sleep(.02)

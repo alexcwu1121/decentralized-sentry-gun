@@ -38,4 +38,4 @@ class ExamplePub():
                                               6, 1.5, .05)
 
             self.sendPath(q_mat)
-            time.sleep(2)
+            time.sleep(3)

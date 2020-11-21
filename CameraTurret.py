@@ -29,6 +29,9 @@ class CameraTurret(Geometry):
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
 
+        # Visualization of camera plane
+        camera_plane_entities = self.cameraPlaneBounds(100, 0.959931, p_2)
+
         #target_p = self.orig if self.targets is None else self.targets[0].pos
         lens_pos = self.representTarget() + self.orig
         target_p = self.getTargetLinks(lens_pos)
@@ -47,7 +50,40 @@ class CameraTurret(Geometry):
                 Point(self.orig, 'black', 10),
                 Point(p_1, 'black', 10),
                 Point(p_2, 'black', 10),
-                ]
+                ] +  camera_plane_entities
+
+    # Function only relevant for simulations, so take focal length and view angle as parameters
+    def cameraPlaneBounds(self, focal_length, view_angle, p_2):
+        # Typical webcam view angles between 55 (0.959931 rad) and 65 degrees (1.13446 rad)
+        R01 = zRot(self.q1)
+        R12 = xRot(self.q2)
+
+        corner_list = []
+        corner_list.append(p_2 + R01 @ R12 @ np.array([focal_length * np.tan(view_angle/2),
+                                                       focal_length,
+                                                       focal_length * np.tan(view_angle/2)]).reshape(3, 1))
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-focal_length * np.tan(view_angle / 2),
+                                                       focal_length,
+                                                       focal_length * np.tan(view_angle / 2)]).reshape(3, 1))
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-focal_length * np.tan(view_angle / 2),
+                                                       focal_length,
+                                                       -focal_length * np.tan(view_angle / 2)]).reshape(3, 1))
+        corner_list.append(p_2 + R01 @ R12 @ np.array([focal_length * np.tan(view_angle / 2),
+                                                       focal_length,
+                                                       -focal_length * np.tan(view_angle / 2)]).reshape(3, 1))
+
+        entities = []
+        for i in range(len(corner_list)):
+            entities.append(Line(corner_list[i], p_2, "yellow", 2))
+            if i < len(corner_list) - 1:
+                entities.append(Line(corner_list[i], corner_list[i+1], "yellow", 2))
+            else:
+                entities.append(Line(corner_list[i], corner_list[0], "yellow", 2))
+
+        return entities
+
+    #def targetInView(self, focal_length, view_angle):
+
 
     def getTargetLinks(self, lens_pos):
         t_links = []
