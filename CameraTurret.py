@@ -16,6 +16,12 @@ class CameraTurret(Geometry):
         self.orig = orig
         self.targets = targets
 
+    def setQ1(self, q1):
+        self.q1 = q1
+
+    def setQ2(self, q2):
+        self.q2 = q2
+
     def getEntities(self):
         R01 = zRot(self.q1)
         R12 = xRot(self.q2)

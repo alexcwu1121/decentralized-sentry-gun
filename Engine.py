@@ -34,6 +34,10 @@ class Engine:
     def addGeometry(self, objects):
         self.geometries.extend(objects)
 
+    def clearGeometries(self):
+        self.geometries.clear()
+        self.canvas.delete("all")
+
     def update(self):
         for geometry in self.geometries:
             for entity in geometry.getEntities():
@@ -48,9 +52,13 @@ if __name__ == "__main__":
     e.addGeometry([Grid(20, 20)])
     e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1))])
     e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))])])
-    e.addGeometry([GunTurret(40, [-100, 50, 100])])
+    e.addGeometry([GunTurret(0, 0, 40, [-100, 50, 100])])
 
-    current_configuration = "initial_configuration"
+    while(True):
+        e.update()
+        time.sleep(1)
+
+    """current_configuration = "initial_configuration"
     count = 0
     time = 0
     period = 0.01
@@ -70,6 +78,6 @@ if __name__ == "__main__":
                 count += 1
             else:
                 move = False
-        time.sleep(period)
+        time.sleep(period)"""
 
 

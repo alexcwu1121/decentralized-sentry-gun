@@ -41,11 +41,11 @@ class Comms:
         t.start()
 
     def get(self, topic):
-        encoded = self.subscriber_queues[topic].get()
+        # Non blocking queue get because system is fully asynchronous
+        encoded = self.subscriber_queues[topic].get(False)
         return pickle.loads(encoded)
 
     def send(self, topic, message):
-        # encode message with protobuf
         encoded = pickle.dumps(message)
         self.publisher_ports[topic].send(encoded)
 
