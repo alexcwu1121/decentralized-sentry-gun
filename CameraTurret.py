@@ -1,4 +1,5 @@
 import numpy as np
+import sympy as sp
 from Entity import Line, Point, DottedLine
 from Geometry import Geometry
 from utils.coordination_calculator import xRot, yRot, zRot
@@ -24,7 +25,7 @@ class CameraTurret(Geometry):
         p_2 = p_1 + R01 @ R12 @ self.pOffset
 
         #target_p = self.orig if self.targets is None else self.targets[0].pos
-        lens_pos = self.representTarget() + self.orig # getPositionInSweep(elapsed_time)
+        lens_pos = self.representTarget() + self.orig
         target_p = self.getTargetLinks(lens_pos)
         target_rep = self.representTarget(target_p[0]) + self.orig
 
@@ -46,7 +47,8 @@ class CameraTurret(Geometry):
                 ]
 
     def zeroConfiguration(self):
-        return self.orig + self.p12 + self.pOffset
+        # in the origin frame, so orig = (0, 0, 0)
+        return self.p12 + self.pOffset, np.identity(3)
 
     def getTargetLinks(self, lens_pos):
         t_links = []
@@ -112,10 +114,75 @@ class CameraTurret(Geometry):
 
         return target[0:3, 3:4]
 
-    def getPositionInSweep(self, t):
-        # sinusoidal sweep
-        # assuming t=0 is zero configuration, and camera travels with a constant velocity of 10 units/s
-        pass
+    def sweepPath(self, init_q = np.array([0, 0]).reshape(2, 1), t_elapse, time_step):
+        # sinusoidal sweep: follows y = 100*sin(pi*z/4) path
+        # assuming for now that velocity is a constant 50 units/s
+        # define (0, 0) as camera turret at zero configuration
+
+        vel = 50
+        z = float(t_elapse*vel)
+        y = 100*np.sin(np.pi*float(t_elapse*vel)/4)
+        # x doesn't change
+        # result = self.inverseKin(self.zeroConfiguration() + np.array([0 y z]).reshape(3, 1))
+
+        # use result to get (q1, q2), then create path matrix from init_pos to result angles
+        # path matrix will have to stop and reverse when camera motion limit is reached
+        # and stop completely when a target is found
+        # make timestep very small to ensure motion is along path as much as possible
+        # may have to calculate inverse kinematics for every iteration
+
+        num_steps = math.ceil(t_elapse / time_step)
+        q_steps = np.zeros([self.num_q, num_steps])
+        timestamps = np.zeros([1, num_steps])
+
+    # def inverseKin(self, p0T = self.zeroConfiguration()[0]):
+    #     # Arrange kinematic chain into subproblem 4
+    #     # P0T = P01 + R12 @ P12 + R12 @ R2T @ P2T
+    #     # ezT(P12 + P2T) = exT @ Rz(q1)T @ (P0T - P01)
+    #     # Where P2T is pOffset + [0, dh, dv] = [0; l2 + dh; dv]
+    #     exT = sp.Matrix([[1, 0, 0]])
+    #     Rzq1 = sp.Matrix([[sp.cos(self.q1), -sp.sin(self.q1), 0],
+    #                         [sp.sin(self.q1), sp.cos(self.q1), 0],
+    #                         [0, 0, 1]])
+
+    #     expr = exT * Rzq1 * (sp.Matrix(p0T) - sp.Matrix(self.p01))
+
+    #     p2T = sp.Matrix(self.pOffset) + sp.Matrix([[0], [self.dh], [self.dv]])
+    #     d = exT * (sp.Matrix(self.p12) + p2T)
+
+    #     # Solve kinematic chain for q1. Only ever one solution.
+    #     q1_sol = sp.solve(expr - d, self.q1)[0][0]
+
+    #     # Substitute q1 into kinematic chain and solve for q2 using subproblem 3
+    #     # POT - P01 - R12 @ P12 = R12 @ R2T @ P2T
+    #     # R12T @ (POT - P01 - R12 @ P12) = R2T @ P2T
+    #     # |R12T @ (POT - P01 - R12 @ P12)| = |R2T @ P2T|
+    #     # lhs_norm = rhs_norm
+    #     #
+    #     # Since system has an extra t variable due to trajectory, use z relation
+
+    #     lhs = Rzq1.T * (sp.Matrix(p0T) - sp.Matrix(self.p01) - Rzq1 * sp.Matrix(self.p12))
+    #     lhs_val = lhs.subs(self.q1, q1_sol)
+
+    #     lhs_norm = (lhs_val[0]**2 + lhs_val[1]**2 + lhs_val[2]**2)**.5
+    #     lhs_z = lhs_val[2]
+
+    #     Rxq2 = sp.Matrix([[1, 0, 0],
+    #                      [0, sp.cos(self.q2), -sp.sin(self.q2)],
+    #                      [0, sp.sin(self.q2), sp.cos(self.q2)]])
+
+    #     rhs = Rxq2 * p2T
+    #     rhs_norm = (rhs[0]**2 + rhs[1]**2 + rhs[2]**2)**.5
+    #     rhs_z = rhs[2]
+
+    #     esys = sp.Matrix([[lhs_norm - rhs_norm], [lhs_z - rhs_z]])
+
+    #     over_sol = sp.nsolve((esys), [self.q2, self.t], [0, 0], modules=['mpmath'])
+
+    #     return -q1_sol, over_sol[0], over_sol[1], (self.p01 + Rzq1*self.p12 + Rzq1*Rxq2*p2T).subs([[self.q1, -q1_sol],
+    #                                                                                                [self.q2, over_sol[0]]])
+
+
 
     # Unnecessary for cameraTurret for now
     def scurvePath(self):
