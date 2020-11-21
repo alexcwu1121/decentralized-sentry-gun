@@ -34,6 +34,10 @@ class Engine:
     def addGeometry(self, objects):
         self.geometries.extend(objects)
 
+    def clearGeometries(self):
+        self.geometries.clear()
+        self.canvas.delete("all")
+
     def update(self):
         for geometry in self.geometries:
             for entity in geometry.getEntities():
@@ -48,9 +52,13 @@ if __name__ == "__main__":
     e.addGeometry([Grid(20, 20)])
     e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1))])
     e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))])])
-    e.addGeometry([GunTurret(40, [-100, 50, 100])])
+    e.addGeometry([GunTurret(0, 0, 40, [-100, 50, 100])])
 
-    current_configuration = "initial_configuration"
+    while(True):
+        e.update()
+        time.sleep(1)
+
+    """current_configuration = "initial_configuration"
     count = 0
     #time = 0
     period = 0.01
@@ -58,18 +66,18 @@ if __name__ == "__main__":
     moving = False
     while True:
         e.update()
-        # if not moving:
-        #     coordinate = "receive from camera turret"
-        #     configuration_matrix = "calculate path with current configuration and the coordinate"
-        #     run_time = "should return together with the matrix"
-        #     period = float(run_time) / (len(configuration_matrix) - 1)
-        #     stop_time = time.clock() + run_time
-        # else:
-        #     if time.clock() <= stop_time:
-        #         current_configuration = configuration_matrix[count]
-        #         count += 1
-        #     else:
-        #         move = False
-        time.sleep(1)
+        if not moving:
+            coordinate = "receive from camera turret"
+            confiuration_matrix = "calculate path with current configuration and the coordinate"
+            run_time = "should return together with the matrix"
+            period = float(run_time) / (len(confiuration_matrix) - 1)
+            stop_time = time.clock() + run_time
+        else:
+            if time.clock() <= stop_time:
+                current_configuration = confiuration_matrix[count]
+                count += 1
+            else:
+                move = False
+        time.sleep(period)"""
 
 
