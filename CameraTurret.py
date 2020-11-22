@@ -139,24 +139,26 @@ class CameraTurret(Turret):
 
         return target[0:3, 3:4]
 
-
     # Returns a path matrix representing the entire sweep
     # sinusoidal sweep
     # in position space: y = 100*sin(pi*z/4)
-    # in configuration space: q1 = a*sin(b*q2),
-    # where a = q1_max, b = (2.5*pi)/q2_max
+    # in configuration space: q1 = a*sin(b*(q2-c))+d
     # (0, 0) is camera turret at zero configuration
     # increasing t_elapse decreases speed of camera
-    def sweepPath(self, t_elapse, time_step = 0.1, q1_max = np.pi, q2_max = np.pi):
-        init_q = np.array([-q1_max, -q2_max]).reshape(2, 1)
-        dest_q = np.array([q1_max, q2_max]).reshape(2, 1)
-        a = q1_max
-        b = 2.5 * np.pi / q2_max
+    def sweepPath(self, t_elapse, time_step = 0.1, q1_range = (-np.pi, np.pi), q2_range = (-np.pi, np.pi)):
+        init_q = np.array([q1_range[0], q2_range[0]]).reshape(2, 1)
+        dest_q = np.array([q1_range[1], q2_range[1]]).reshape(2, 1)
+        r1 = getRange(q1_range)
+        r2 = getRange(q2_range)
+        a = r1
+        b = 2.5 * np.pi / r2
+        c = q2_range[1] - r2
+        d = q1_range[1] - r1
         
         # Find number of time steps and allocate path matrix at size
         num_steps = np.ceil(t_elapse / time_step).astype('int')
-        period = 2 * q2_max / num_steps
-        t = -np.pi
+        period = 2 * r2 / num_steps
+        t = q2_range[0]   # t initialized to pi because of zero configuration offest from yz-plane
         num_q = 2
         q_steps = np.zeros([num_q+1, num_steps+1])
 
@@ -164,12 +166,17 @@ class CameraTurret(Turret):
             timestamp = i * time_step
 
             # parametrize path to q2 = t, q1 = a*sin(b*t)
-            q_step = np.array([a*np.sin(b*t), t]).reshape(2, 1)
+            q_step = np.array([(a*np.sin(b*(t-c))+d)+np.pi/2, t]).reshape(2, 1)
             q_steps[0, i:i+1] = (i * time_step)
             q_steps[1:3,i:i+1] = q_step
             t += period
 
         return q_steps
+
+# Helper function to get range of an angle
+# r = (min, max)
+def getRange(r):
+    return (r[1] - r[0]) / 2.0
 
 # for testing
 if __name__ == "__main__":
