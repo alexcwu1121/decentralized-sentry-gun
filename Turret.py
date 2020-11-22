@@ -77,12 +77,12 @@ class Turret(Geometry, ABC):
 
 		# Find number of time steps and allocate path matrix at size
 		# q x s, where q is the number of joints and s is the number of time steps
-		num_steps = np.ceil(t_elapse / time_step)
+		num_steps = np.ceil(t_elapse / time_step).astype('int')
 		q_steps = np.zeros([self.num_q+1, num_steps])
 
 		for i in range(num_steps):
 		    # Find current distance along unit vector
-		    s = norm / (1 + math.e ** (-coeff_s * ((i * time_step) - t0)))
+		    s = norm / (1 + np.e ** (-coeff_s * ((i * time_step) - t0)))
 
 		    # Project along unit vector and add initial q
 		    q_step = s * u + init_q
