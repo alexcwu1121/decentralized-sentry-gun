@@ -31,8 +31,10 @@ class ExampleCameraPub():
         Check subscriber bus for path matrix. If path is found, clear cameraPath and replace with new path.
         If no path is found,
         """
+        #print(self.cameraTurret.sweepPath(10, 0.1, np.pi/2))
+
         while(True):
-            q_mat = self.cameraTurret.sweepPath(10, np.pi/2, np.pi/2)
+            q_mat = self.cameraTurret.sweepPath(5, q1_max=np.pi/2, q2_max=np.pi/2)
 
             self.sendPath(q_mat)
-            time.sleep(3)
+            time.sleep(5)
