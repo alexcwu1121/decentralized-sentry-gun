@@ -169,7 +169,7 @@ class HardwareInterface():
                     (time.time() - prev_camera_write >= camera_write_delay):
 
                 # Write config
-                self.writeCameraS(self.cameraPath[1:3, 0:1])
+                self.writeCamS(self.cameraPath[1:3, 0:1])
                 prev_camera_write = time.time()
 
                 # Set new delay
