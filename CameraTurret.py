@@ -146,8 +146,6 @@ class CameraTurret(Turret):
     # (0, 0) is camera turret at zero configuration
     # increasing t_elapse decreases speed of camera
     def sweepPath(self, t_elapse, time_step = 0.1, q1_range = (-np.pi, np.pi), q2_range = (-np.pi, np.pi)):
-        init_q = np.array([q1_range[0], q2_range[0]]).reshape(2, 1)
-        dest_q = np.array([q1_range[1], q2_range[1]]).reshape(2, 1)
         r1 = getRange(q1_range)
         r2 = getRange(q2_range)
         a = r1
@@ -163,9 +161,7 @@ class CameraTurret(Turret):
         q_steps = np.zeros([num_q+1, num_steps+1])
 
         for i in range(num_steps+1):
-            timestamp = i * time_step
-
-            # parametrize path to q2 = t, q1 = a*sin(b*t)
+            # parametrize path to q2 = t, q1 = a*sin(b*(t-c))+d with zero_config offset
             q_step = np.array([(a*np.sin(b*(t-c))+d)+np.pi/2, t]).reshape(2, 1)
             q_steps[0, i:i+1] = (i * time_step)
             q_steps[1:3,i:i+1] = q_step

@@ -3,7 +3,7 @@ import multiprocessing as mp
 import os
 import sys
 from example_pub import ExamplePub
-from example_camera_pub import ExampleCameraPub
+from camera_motion import CameraMotion
 from hardware_interface import HardwareInterface
 
 def worker(type, args=None):
@@ -27,7 +27,7 @@ def main():
         procs.append(p)
         p.start()
 
-        p = mp.Process(target=worker, args=('example_camera_pub',))
+        p = mp.Process(target=worker, args=('camera_motion',))
         procs.append(p)
         p.start()
 
