@@ -69,8 +69,8 @@ class HardwareInterface():
 
         # Grid and target dimensions are hardcoded
         self.sim_out.addGeometry([Grid(20, 20)])
-        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1))])
-        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))],
+        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
+        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")],
                                         q1 = ctarg[0, 0],
                                         q2 = ctarg[1, 0]
                                     )])
@@ -94,8 +94,8 @@ class HardwareInterface():
 
         # Grid and target dimensions are hardcoded
         self.sim_out.addGeometry([Grid(20, 20)])
-        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1))])
-        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))],
+        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
+        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")],
                                     self.camera_config[0, 0],
                                     self.camera_config[1, 0]
                                     )])

@@ -13,6 +13,13 @@ class CameraTurret(Turret):
         super().__init__(q1, q2, pOffset, p12, orig)
         self.targets = targets
 
+        # Only need to run initSimCamera for simulations
+        self.initSimCamera()
+
+    def initSimCamera(self):
+        self.focal_length = 100
+        self.view_angle = 0.959931
+
     def getEntities(self):
         R01 = zRot(self.q1_given)
         R12 = xRot(self.q2_given)
@@ -20,12 +27,15 @@ class CameraTurret(Turret):
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
 
+        #print(self.targetsInView())
+
         # Visualization of camera plane
-        camera_plane_entities = self.cameraPlaneBounds(100, 0.959931, p_2)
+        camera_plane_entities = self.cameraPlaneBounds(p_2)
 
         #target_p = self.orig if self.targets is None else self.targets[0].pos
         lens_pos = self.representTarget() + self.orig
-        target_p = self.getTargetLinks(lens_pos)
+        # target list can be changed to include only targets in view
+        target_p = self.getTargetLinks(lens_pos, self.targets)
         target_rep = self.representTarget(target_p[0]) + self.orig
 
         return [Line(np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1), p_2, "black", 2),
@@ -44,24 +54,24 @@ class CameraTurret(Turret):
                 ] +  camera_plane_entities
 
     # Function only relevant for simulations, so take focal length and view angle as parameters
-    def cameraPlaneBounds(self, focal_length, view_angle, p_2):
+    def cameraPlaneBounds(self, p_2):
         # Typical webcam view angles between 55 (0.959931 rad) and 65 degrees (1.13446 rad)
         R01 = zRot(self.q1_given)
         R12 = xRot(self.q2_given)
 
         corner_list = []
-        corner_list.append(p_2 + R01 @ R12 @ np.array([focal_length * np.tan(view_angle/2),
-                                                       focal_length,
-                                                       focal_length * np.tan(view_angle/2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([-focal_length * np.tan(view_angle / 2),
-                                                       focal_length,
-                                                       focal_length * np.tan(view_angle / 2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([-focal_length * np.tan(view_angle / 2),
-                                                       focal_length,
-                                                       -focal_length * np.tan(view_angle / 2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([focal_length * np.tan(view_angle / 2),
-                                                       focal_length,
-                                                       -focal_length * np.tan(view_angle / 2)]).reshape(3, 1))
+        corner_list.append(p_2 + R01 @ R12 @ np.array([self.focal_length * np.tan(self.view_angle/2),
+                                                       self.focal_length,
+                                                       self.focal_length * np.tan(self.view_angle/2)]).reshape(3, 1))
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length * np.tan(self.view_angle / 2),
+                                                       self.focal_length,
+                                                       self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length * np.tan(self.view_angle / 2),
+                                                       self.focal_length,
+                                                       -self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
+        corner_list.append(p_2 + R01 @ R12 @ np.array([self.focal_length * np.tan(self.view_angle / 2),
+                                                       self.focal_length,
+                                                       -self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
 
         entities = []
         for i in range(len(corner_list)):
@@ -73,11 +83,32 @@ class CameraTurret(Turret):
 
         return entities
 
-    #def targetInView(self, focal_length, view_angle):
+    def targetsInView(self):
+        # Check all given targets and return a list of targets that are in view
+        # Compute getTargetLinks
+        # Compute angle between x/y and z axes and check if they lie within view range
+        R01 = zRot(self.q1_given)
+        R12 = xRot(self.q2_given)
 
-    def getTargetLinks(self, lens_pos):
+        p_1 = self.orig + R01 @ self.p12
+        p_2 = p_1 + R01 @ R12 @ self.pOffset
+
+        t_links = self.getTargetLinks(p_2, self.targets)
+        in_view = []
+
+        for t_link, target in zip(t_links, self.targets):
+            tvec = zRot(np.pi) @ xRot(np.pi/2) @ t_link
+            if tvec[2][0] < 0:
+                continue
+            if abs(np.arctan2(tvec[0][0], tvec[2][0])) < self.view_angle/2 and \
+                    abs(np.arctan2(tvec[1][0], tvec[2][0])) < self.view_angle/2:
+                in_view.append(target)
+
+        return in_view
+
+    def getTargetLinks(self, lens_pos, targets):
         t_links = []
-        for target in self.targets:
+        for target in targets:
             # Simulate tvecs coming from Aruco by representing distances between
             # the camera lens and each target in the camera lens' frame
             c_t = target.pos - lens_pos
@@ -92,7 +123,7 @@ class CameraTurret(Turret):
 
             # Set axes relative to Aruco camera axis
             # Produces a 'tvec', a pinhole camera translation vector given by Aruco
-            #c_tc = xRot(-np.pi/2) @ yRot(np.pi) @ c_tc
+            #c_tc = zRot(np.pi) @ xRot(np.pi/2) @ c_tc
 
             # TODO Rotate axes back to camera frame.
             # Rotates tvec to camera frame. Final offset sent to POE
