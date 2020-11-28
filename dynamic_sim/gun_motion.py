@@ -15,6 +15,9 @@ class GunMotion():
         self.Comms.add_publisher_port('127.0.0.1', '3003', 'gunPath')
 
     def receive(self):
+        """
+        Reads gun turret configurations and the target position
+        """
         try:
             self.configuration = self.Comms.get('gState').payload
         except queue.Empty:
@@ -25,9 +28,16 @@ class GunMotion():
             pass
 
     def publish(self):
+        """
+        Publishes the gun path
+        """
         self.Comms.define_and_send(self.name, 'gunPath', self.pathMatix)
 
     def run(self):
+        """
+        Checks the configuration of gun turret and the target, if a target is recieved, calculate the path matix and
+        delete the target to wait for the next one
+        """
         while True:
             self.receive()
             if self.target != None:
