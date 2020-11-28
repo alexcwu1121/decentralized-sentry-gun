@@ -73,7 +73,7 @@ class CameraInterface():
             p_2 = p_1 + R01 @ R12 @ self.cTurret.pOffset
             t_links = self.cTurret.getTargetLinks(p_2, targets)
             for (t_link, target) in zip(t_links, targets):
-                targ_pos = self.cTurret.representTarget(t_link) + self.cTurret.orig
+                targ_pos = self.cTurret.representTarget(t_link)
                 self.publishPos(target.id, targ_pos)
                 print(targ_pos)
 
