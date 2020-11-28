@@ -8,7 +8,7 @@ class Target(Geometry):
         self.id = id
         self.pos = pos
 
-    def getIds(self):
+    def getId(self):
         return self.id
 
     def getEntities(self):
