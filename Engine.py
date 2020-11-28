@@ -50,8 +50,8 @@ if __name__ == "__main__":
                np.array([np.pi/2-.4, np.pi/4 + .2, .3]).reshape(3, 1))
 
     e.addGeometry([Grid(20, 20)])
-    e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1))])
-    e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1))])])
+    e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
+    e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])])
     e.addGeometry([GunTurret(0, 0, 40, [-100, 50, 100])])
 
     while(True):

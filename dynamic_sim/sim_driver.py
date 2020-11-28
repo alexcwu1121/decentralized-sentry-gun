@@ -5,6 +5,7 @@ import sys
 from example_pub import ExamplePub
 from camera_motion import CameraMotion
 from hardware_interface import HardwareInterface
+from camera_interface import CameraInterface
 
 def worker(type, args=None):
     if type == 'example_pub':
@@ -19,6 +20,9 @@ def worker(type, args=None):
     elif type == 'camera_motion':
         camera_motion = CameraMotion()
         camera_motion.run()
+    elif type == 'camera_interface':
+        camera_interface = CameraInterface()
+        camera_interface.run()
 
 def main():
     procs = []
@@ -32,6 +36,10 @@ def main():
         p.start()
 
         p = mp.Process(target=worker, args=('hardware_interface',))
+        procs.append(p)
+        p.start()
+
+        p = mp.Process(target=worker, args=('camera_interface',))
         procs.append(p)
         p.start()
 
