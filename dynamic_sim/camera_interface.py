@@ -20,6 +20,9 @@ class CameraInterface():
     def __init__(self):
         self.name = "camera"
 
+        # Keep track of all targets seen to ensure only one fwdkin is pushed downstream for each
+        self.target_log = set()
+
         # Targets defined here for simulation only
         self.cTurret = CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
 
@@ -62,7 +65,9 @@ class CameraInterface():
             # run marker detection on frame (or for simulation, check for targets in range
             targets = self.cTurret.targetsInView()
 
-            #print(targets)
+            # Get new targets and add to log set
+            new_targets = {key: targets[key] for key in (targets.keys() - self.target_log)}
+            self.target_log = self.target_log | new_targets.keys()
 
             # if marker detected (or target is within view range for simulation), compute forward kinematics.
             #   for simulation, first derive target in camera frame, then run forward kinematics
@@ -71,10 +76,11 @@ class CameraInterface():
             R12 = xRot(self.cTurret.q2_given)
             p_1 = self.cTurret.orig + R01 @ self.cTurret.p12
             p_2 = p_1 + R01 @ R12 @ self.cTurret.pOffset
-            t_links = self.cTurret.getTargetLinks(p_2, targets)
-            for (t_link, target) in zip(t_links, targets):
-                targ_pos = self.cTurret.representTarget(t_link) + self.cTurret.orig
-                self.publishPos(target.id, targ_pos)
+            t_links = self.cTurret.getTargetLinks(p_2, new_targets.values())
+
+            for (t_link, target) in zip(t_links, new_targets.keys()):
+                targ_pos = self.cTurret.representTarget(t_link)
+                self.publishPos(target, targ_pos)
                 print(targ_pos)
 
             time.sleep(.02)

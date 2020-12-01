@@ -6,6 +6,7 @@ from utils.coordination_calculator import *
 import sympy as sp
 import math
 import matplotlib.pyplot as plt
+import time
 
 class GunTurret(Turret):
     def __init__(self, q1_given, q2_given, v0, p0T,
@@ -125,7 +126,9 @@ class GunTurret(Turret):
 
         return T01 * T12 * T2T, J
 
-    def inverseKin(self):
+    def inverseKin(self, print_time = False):
+        start_time = time.time()
+
         # Arrange kinematic chain into subproblem 4
         # P0T = P01 + R12 @ P12 + R12 @ R2T @ P2T
         # ezT(P12 + P2T) = exT @ Rz(q1)T @ (P0T - P01)
@@ -168,6 +171,9 @@ class GunTurret(Turret):
         esys = sp.Matrix([[lhs_norm - rhs_norm], [lhs_z - rhs_z]])
 
         over_sol = sp.nsolve((esys), [self.q2, self.t], [0, 0], modules=['mpmath'])
+
+        if print_time:
+            print(time.time() - start_time)
 
         return -q1_sol, over_sol[0], over_sol[1], (self.p01 + Rzq1*self.p12 + Rzq1*Rxq2*p2T).subs([[self.q1, -q1_sol],
                                                                                                    [self.q2, over_sol[0]]])

@@ -94,7 +94,7 @@ class CameraTurret(Turret):
         p_2 = p_1 + R01 @ R12 @ self.pOffset
 
         t_links = self.getTargetLinks(p_2, self.targets)
-        in_view = []
+        in_view = dict()
 
         for t_link, target in zip(t_links, self.targets):
             tvec = zRot(np.pi) @ xRot(np.pi/2) @ t_link
@@ -102,7 +102,7 @@ class CameraTurret(Turret):
                 continue
             if abs(np.arctan2(tvec[0][0], tvec[2][0])) < self.view_angle/2 and \
                     abs(np.arctan2(tvec[1][0], tvec[2][0])) < self.view_angle/2:
-                in_view.append(target)
+                in_view[target.getId()] = target
 
         return in_view
 
