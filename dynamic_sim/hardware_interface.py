@@ -10,6 +10,8 @@ from Grid import Grid
 from Target import Target
 from CameraTurret import CameraTurret
 from GunTurret import GunTurret
+import serial
+import threading
 import time
 import queue
 #from RobotRaconteur.Client import *
@@ -23,8 +25,14 @@ class HardwareInterface():
         self.name = "hardware"
         self.gun_config = np.array([[0, 0]]).T
         self.camera_config = np.array([[0, 0]]).T
+
         self.gunReady = True
         self.gunTurretReady = False
+
+        # Establish serial port and baud rate
+        self.ard = serial.Serial('COM3', 9600)
+        self.ard.open()
+
         # When a target has been detected and
         self.cameraPath = None
         self.gunPath = None
@@ -45,6 +53,11 @@ class HardwareInterface():
         """
         # TODO: Read the gun state from Arduino
         self.gunReady = True
+
+        pos_arr = self.ard.readline()
+        #self.camera_config =
+        #self.gun_config =
+
         return 0
 
     def readStateS(self):
@@ -55,11 +68,14 @@ class HardwareInterface():
         self.camera_config = self.camera_config
         self.gun_config = self.gun_config
 
-    def writeCamR(self):
+    def writeCamR(self, ctarg):
         """
         Writes a servo configuration (hardware)
         """
-        pass
+        self.ard.write(np.array2string(ctarg,
+                                       precision=3,
+                                       separator=',',
+                                       suppress_small=True).encode("utf-8"))
 
     def writeCamS(self, ctarg):
         """
@@ -75,8 +91,11 @@ class HardwareInterface():
 
         #self.sim_out.update()
 
-    def writeGunR(self):
-        pass
+    def writeGunR(self, gtarg):
+        self.ard.write(np.array2string(gtarg,
+                                       precision=3,
+                                       separator=',',
+                                       suppress_small=True).encode("utf-8"))
 
     def writeGunS(self, gtarg):
         """
