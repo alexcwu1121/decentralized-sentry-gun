@@ -3,10 +3,12 @@ import numpy as np
 import threading
 import time
 
-"""Test script for:
+"""
+Test script for:
     1. Encoding and sending numpy configuration arrays over serial
     2. Threaded receive from serial
-    """
+"""
+
 # global configuration states
 gun_config = np.array([[0, 0]]).T
 camera_config = np.array([[0, 0]]).T
@@ -18,16 +20,16 @@ if(ard.isOpen() == False):
 
 # Write sends only one configuration state. Needs identifier label
 def writeCamTurret(config):
-    ard.write(":c,{},{}:".format(config[0][0], config[1][0]).encode())
+    ard.write("c,{},{}:".format(config[0][0], config[1][0]).encode())
 
 # Send sends only one configuration state. Needs identifier label.
 # May be different from cam turret in future versions
 def writeGunTurret(config):
-    ard.write(":g,{},{}:".format(config[0][0], config[1][0]).encode())
+    ard.write("g,{},{}:".format(config[0][0], config[1][0]).encode())
 
 # Tell gun to shoot
 def writeGun():
-    ard.write(":s:".encode())
+    ard.write("s:".encode())
 
 # Receive takes state of all configs at once
 def receive():
@@ -48,9 +50,9 @@ if __name__ == "__main__":
     t.start()
 
     while True:
-        #writeGunTurret(camera_config)
+        writeGunTurret(camera_config)
         #writeCamTurret(gun_config)
-        writeGun()
+        #writeGun()
         time.sleep(.05)
 
     #print("c:{},{}\n".format(gun_config[0][0], gun_config[1][0]).encode())
