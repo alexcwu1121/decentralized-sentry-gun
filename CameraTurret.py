@@ -200,6 +200,40 @@ class CameraTurret(Turret):
 
         return q_steps
 
+    def inverseKin(self, targetPos):
+        # Solve for both q1 and q2 using subproblem 2
+        # POT = R01 @ P12 + R01 @ R12 @ P2T
+        # R01 @ P12 = P12, R01^T(P0T - P12) = R12 @ P2T
+        # k1 = -ez, p1 = p0T - p12 = p2T_target, k2 = -ex, p2 = p2T
+
+        R01T = sp.Matrix([[sp.cos(self.q1), sp.sin(self.q1), 0],
+                            [-sp.sin(self.q1), sp.cos(self.q1), 0],
+                            [0, 0, 1]])
+        R12 = sp.Matrix([[1, 0, 0],
+                         [0, sp.cos(self.q2), sp.sin(self.q2)],
+                         [0, -sp.sin(self.q2), sp.cos(self.q2)]])
+
+        # self.pOffset = p2T where T is at end effector of turret
+        p2T_f = targetPos - self.orig - self.p12
+        p2T_f = p2T_f / np.linalg.norm(p2T_f)
+        p2T_f = p2T_f * np.linalg.norm(self.pOffset)
+
+        lhs = R01T @ p2T_f
+        rhs = R12 @ self.pOffset
+
+        #  0 -1  0
+        #  0  0  1
+        # -1  0  0
+
+        cond = np.linalg.norm(self.pOffset) - p2T_f[2][0]
+        v1 = np.array([0, -1, 0, 0, 0, 1, -1, 0, 0]).reshape(3, 3) @ np.array([-p2T_f[2][0], 0, cond**0.5]).reshape(3, 1)
+
+        # set up subproblem 1, only take first solution for subproblem 2
+        q1_sol = sp.solve(lhs - v1, self.q1)
+        q2_sol = sp.solve(rhs - v1, self.q2)
+
+        return q1_sol, q2_sol
+
 # Helper function to get range of an angle
 # r = (min, max)
 def getRange(r):

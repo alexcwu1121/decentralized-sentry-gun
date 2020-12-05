@@ -7,6 +7,7 @@ from CameraTurret import CameraTurret
 from comms import Comms
 import numpy as np
 import time
+import queue
 
 
 """
@@ -18,12 +19,34 @@ class CameraMotion():
 		self.name = "camera"
 
 		self.cameraTurret = CameraTurret()
+		self.currentPos = np.array([0, 0]).reshape(2, 1)
+		self.currentTarget = np.array([])
+		self.gunPath = np.array([])
 
 		self.Comms = Comms()
+		self.Comms.add_subscriber_port('127.0.0.1', '3000', 'cState')
 		self.Comms.add_publisher_port('127.0.0.1', '3002', 'cameraPath')
+		self.Comms.add_subscriber_port('127.0.0.1', '3003', 'gunPath')
+		self.Comms.add_subscriber_port('127.0.0.1', '3004', 'targetPos')
 
 	def sendPath(self, path):
 		self.Comms.define_and_send(self.name, 'cameraPath', path)
+
+	def receive(self):
+		try:
+			self.currentTarget = self.Comms.get('targetPos').payload
+		except queue.Empty:
+			pass
+
+		try:
+			self.currentPos = self.Comms.get('cState').payload
+		except queue.Empty:
+			pass
+
+		try:
+			self.gunPath = self.Comms.get('gunPath').payload
+		except queue.Empty:
+			pass
 
 	def getFullSweep(self):
 		duration = 5
@@ -42,14 +65,33 @@ class CameraMotion():
 		return np.concatenate((q_mat, q_mat2), axis=1), duration*2
 
 	def run(self):
-		path, duration = self.getFullSweep()
+		sweepPath, duration = self.getFullSweep()
+		self.sendPath(sweepPath)
+
+		startTime = time.time()
 		#print(path, duration)
 
 		while(True):
-			self.sendPath(path)
+			self.receive()
 
-			# Estimate of how long simulation actually takes vs expected duration
-			# Need to test to get accurate scale
-			# Also add conditional to see if target is found before duration is over
-			time.sleep(duration*2)
+			if self.currentTarget.size:
+				targetPos = self.cameraTurret.inverseKin(self.currentTarget)
+				targetPath = self.cameraTurret.scurvePath(self.currentPos, targetPos, 10, 3, 0.1)
+				self.sendPath(targetPath)
+
+				# Hardcoded to duration of scurve * 2, may need to switch to when gun shoots (another connection)
+				time.sleep(6)
+				self.currentTarget = np.array([])
+			else:
+				if time.time() - startTime >= duration*1.5 and not self.gunPath.size:
+					self.sendPath(sweepPath)
+					startTime = time.time()
+					self.gunPath = np.array([])
+
+				# Estimate of how long simulation actually takes vs expected duration
+				# Need to test to get accurate scale
+				# Also add conditional to see if target is found before duration is over
+
+
+			time.sleep(0.2)
 
