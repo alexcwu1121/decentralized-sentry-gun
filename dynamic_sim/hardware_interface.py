@@ -43,6 +43,8 @@ class HardwareInterface():
         """
         Reads servo configurations and updates internal state (hardware)
         """
+        # TODO: Read the gun state from Arduino
+        self.gunReady = True
         return 0
 
     def readStateS(self):
@@ -57,6 +59,7 @@ class HardwareInterface():
         """
         Writes a servo configuration (hardware)
         """
+
         pass
 
     def writeCamS(self, ctarg):
@@ -127,20 +130,21 @@ class HardwareInterface():
         except queue.Empty:
             pass
 
-    def receiveGunState(self):
-        # TODO: Read the gun state from Arduino
-        """
-        Reads the state of the gun from Arduino
-        """
-        self.gunReady = True
 
     def fireTheShot(self):
         # TODO: Send a fire command to the gun to Arduino and start reloading
         self.gunReady = False
 
     def checkTurretReady(self):
-        # TODO: Verify if the gun turret is aiming at the target
-        self.gunReady = True
+        """
+        Check if the turret is aiming at the target
+        """
+        error = 0.02
+        if self.gunPath[-1][0] * (1 - error) < self.gun_config[0] < self.gunPath[-1][0] * (1 + error) and \
+           self.gunPath[-1][1] * (1 - error) < self.gun_config[1] < self.gunPath[-1][1] * (1 + error):
+            self.gunReady = True
+        else:
+            self.gunReady = False
 
     def run(self):
         """
@@ -157,7 +161,6 @@ class HardwareInterface():
             # Update configuration states and publish them
             self.readStateS()
             self.publishState()
-            self.receiveGunState()
             self.checkTurretReady()
             # Pull path matrix from queue and replace existing matrices
             self.receivePath()
@@ -198,8 +201,6 @@ class HardwareInterface():
                 self.cameraPath = self.cameraPath[0:3, 1:]
             if self.gunReady and self.gunTurretReady:
                 self.fireTheShot()
-            # else:
-                # TODO: return the camera to sweep state
             # Display simulation.
             self.sim_out.update()
             # Hardware interface updates 50 times a second
