@@ -3,51 +3,60 @@ import multiprocessing as mp
 import os
 import sys
 from example_pub import ExamplePub
+from example_camera_pub import ExampleCameraPub
 from camera_motion import CameraMotion
 from hardware_interface import HardwareInterface
 from camera_interface import CameraInterface
 from gun_motion import GunMotion
 
-def worker(type, args=None):
+def worker(type, is_sim):
     if type == 'example_pub':
         example_pub = ExamplePub()
-        example_pub.run()
+        example_pub.run(is_sim)
     elif type == 'example_camera_pub':
         example_camera_pub = ExampleCameraPub()
-        example_camera_pub.run()
+        example_camera_pub.run(is_sim)
     elif type == 'hardware_interface':
         hardware_interface = HardwareInterface()
-        hardware_interface.run()
+        hardware_interface.run(is_sim)
     elif type == 'camera_motion':
         camera_motion = CameraMotion()
-        camera_motion.runSweep()
+        camera_motion.run(is_sim)
     elif type == 'camera_interface':
         camera_interface = CameraInterface()
-        camera_interface.run()
+        camera_interface.run(is_sim)
     elif type == 'gun_motion':
         gun_motion = GunMotion()
-        gun_motion.run()
+        gun_motion.run(is_sim)
 
 def main():
     procs = []
+
+    is_sim = True
+
     try:
-        #p = mp.Process(target=worker, args=('example_pub',))
+        #p = mp.Process(target=worker, args=('example_pub', is_sim))
         #procs.append(p)
         #p.start()
 
-        p = mp.Process(target=worker, args=('gun_motion',))
+        p = mp.Process(target=worker, args=('gun_motion', is_sim))
         procs.append(p)
         p.start()
 
-        p = mp.Process(target=worker, args=('camera_motion',))
+        #p = mp.Process(target=worker, args=('example_camera_pub', is_sim))
+        #procs.append(p)
+        #p.start()
+
+        p = mp.Process(target=worker, args=('hardware_interface', is_sim))
         procs.append(p)
         p.start()
 
-        p = mp.Process(target=worker, args=('hardware_interface',))
+        p = mp.Process(target=worker, args=('camera_interface', is_sim))
         procs.append(p)
         p.start()
 
-        p = mp.Process(target=worker, args=('camera_interface',))
+        # Uncomment once camera motion is implemented
+        p = mp.Process(target=worker, args=('camera_motion', is_sim))
         procs.append(p)
         p.start()
 

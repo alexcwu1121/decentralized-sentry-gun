@@ -25,8 +25,12 @@ class ExampleCameraPub():
     def sendPath(self, path):
         self.Comms.define_and_send(self.name, 'cameraPath', path)
 
-    def run(self):
-        # Testing required to find q1_range and q2_range
+    def run(self, is_sim):
+        """
+        Check subscriber bus for path matrix. If path is found, clear cameraPath and replace with new path.
+        If no path is found,
+        """  
+        # Testing required to find q1_max and q2_max
         while(True):
             q_mat = self.cameraTurret.sweepPath(5, q1_range=(-np.pi/4,np.pi/4), q2_range=(-np.pi/4,np.pi/4))
 

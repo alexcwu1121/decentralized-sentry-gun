@@ -26,7 +26,7 @@ class ExamplePub():
     def sendPath(self, path):
         self.Comms.define_and_send(self.name, 'gunPath', path)
 
-    def run(self):
+    def run(self, is_sim):
         """
         Check subscriber bus for path matrix. If path is found, clear cameraPath and replace with new path.
         If no path is found,

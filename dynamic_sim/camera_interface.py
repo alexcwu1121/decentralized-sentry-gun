@@ -48,7 +48,7 @@ class CameraInterface():
         """
         self.Comms.define_and_send(id, 'targetPos', target)
 
-    def run(self):
+    def runS(self):
         prev_frame = time.time()
         # twenty frames per second
         frame_delay = .05
@@ -84,3 +84,13 @@ class CameraInterface():
                 print(targ_pos)
 
             time.sleep(.02)
+
+    # TODO perform opencv marker detection
+    def runR(self):
+        pass
+
+    def run(self, is_sim):
+        if is_sim:
+            self.runS()
+        else:
+            self.runR()
