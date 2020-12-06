@@ -125,20 +125,20 @@ class HardwareInterface():
                                  40, [-100, 50, 100])])
 
 
-    def fireTheShot(self):
-        # TODO: Send a fire command to the gun to Arduino and start reloading
-        self.gunReady = False
+    # def fireTheShot(self):
+    #     # TODO: Send a fire command to the gun to Arduino and start reloading
+    #     self.gunReady = False
 
-    def checkTurretReady(self):
-        """
-        Check if the turret is aiming at the target
-        """
-        error = 0.02
-        if self.gunPath[-1][0] * (1 - error) < self.gun_config[0] < self.gunPath[-1][0] * (1 + error) and \
-           self.gunPath[-1][1] * (1 - error) < self.gun_config[1] < self.gunPath[-1][1] * (1 + error):
-            self.gunReady = True
-        else:
-            self.gunReady = False
+    # def checkTurretReady(self):
+    #     """
+    #     Check if the turret is aiming at the target
+    #     """
+    #     error = 0.02
+    #     if self.gunPath[-1][0] * (1 - error) < self.gun_config[0] < self.gunPath[-1][0] * (1 + error) and \
+    #        self.gunPath[-1][1] * (1 - error) < self.gun_config[1] < self.gunPath[-1][1] * (1 + error):
+    #         self.gunReady = True
+    #     else:
+    #         self.gunReady = False
 
     def run(self):
         """
@@ -157,7 +157,7 @@ class HardwareInterface():
             # Update configuration states and publish them
             self.readStateS()
             self.publishState()
-            self.checkTurretReady()
+            #self.checkTurretReady()
             # Pull path matrix from queue and replace existing matrices
             self.receivePath()
 
@@ -195,8 +195,8 @@ class HardwareInterface():
 
                 # Pop current config
                 self.cameraPath = self.cameraPath[0:3, 1:]
-            if self.gunReady and self.gunTurretReady:
-                self.fireTheShot()
+            # if self.gunReady and self.gunTurretReady:
+            #     self.fireTheShot()
             # Display simulation.
             self.sim_out.update()
             # Hardware interface updates 50 times a second
