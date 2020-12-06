@@ -62,7 +62,7 @@ class CameraInterface():
             # Update camera turret coords
             self.getCState()
 
-            # run marker detection on frame (or for simulation, check for targets in range
+            # run marker detection on frame (or for simulation, check for targets in range)
             targets = self.cTurret.targetsInView()
 
             # Get new targets and add to log set

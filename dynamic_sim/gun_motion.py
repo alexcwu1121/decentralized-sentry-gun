@@ -37,7 +37,7 @@ class GunMotion():
         """
         Publishes the gun path
         """
-        self.Comms.define_and_send(self.name, 'gunPath', self.pathMatix)
+        self.Comms.define_and_send(self.name, 'gunPath', self.pathMatrix)
 
     def run(self):
         """
@@ -48,7 +48,7 @@ class GunMotion():
             self.receive()
             if self.target:
                 q1, q2, toa, f = self.gTurret.inverseKin(print_time=True)
-                self.pathMatix = self.gTurret.scurvePath(self.configuration,
+                self.pathMatrix = self.gTurret.scurvePath(self.configuration,
                                                          np.array([q1, q2]).reshape(2, 1),
                                                          10, 1.5, .05)
                 self.target = False
