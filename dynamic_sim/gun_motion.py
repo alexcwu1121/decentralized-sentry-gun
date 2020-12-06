@@ -39,7 +39,7 @@ class GunMotion():
         """
         self.Comms.define_and_send(self.name, 'gunPath', self.pathMatrix)
 
-    def run(self):
+    def run(self, is_sim):
         """
         Checks the configuration of gun turret and the target, if a target is received, calculate the path matrix and
         delete the target to wait for the next one
