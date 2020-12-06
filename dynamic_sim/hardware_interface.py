@@ -68,15 +68,7 @@ class HardwareInterface():
         self.camera_config = ctarg
 
         # Grid and target dimensions are hardcoded
-        self.sim_out.addGeometry([Grid(20, 20)])
-        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
-        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")],
-                                        q1 = ctarg[0, 0],
-                                        q2 = ctarg[1, 0]
-                                    )])
-        self.sim_out.addGeometry([GunTurret(self.gun_config[0, 0],
-                                 self.gun_config[1, 0],
-                                 40, [-100, 50, 100])])
+        self.drawSim(ctarg, self.gun_config)
 
         #self.sim_out.update()
 
@@ -93,15 +85,7 @@ class HardwareInterface():
         self.gun_config = gtarg
 
         # Grid and target dimensions are hardcoded
-        self.sim_out.addGeometry([Grid(20, 20)])
-        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
-        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")],
-                                    self.camera_config[0, 0],
-                                    self.camera_config[1, 0]
-                                    )])
-        self.sim_out.addGeometry([GunTurret(gtarg[0][0],
-                                 gtarg[1][0],
-                                 40, [-100, 50, 100])])
+        self.drawSim(self.camera_config, gtarg)
 
         # self.sim_out.update()
 
@@ -126,6 +110,17 @@ class HardwareInterface():
         except queue.Empty:
             pass
 
+    def drawSim(self, cameraPos, gunPos):
+        self.sim_out.addGeometry([Grid(20, 20)])
+        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
+        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")],
+                                    cameraPos[0, 0],
+                                    cameraPos[1, 0]
+                                    )])
+        self.sim_out.addGeometry([GunTurret(gunPos[0, 0],
+                                 gunPos[1, 0],
+                                 40, [-100, 50, 100])])
+
     def run(self):
         """
         Check subscriber bus for path matrix. If path is found, clear cameraPath and replace with new path.
@@ -136,6 +131,8 @@ class HardwareInterface():
 
         prev_camera_write = time.time()
         camera_write_delay = 0
+
+        self.drawSim(self.camera_config, self.gun_config)
 
         while(True):
             # Update configuration states and publish them

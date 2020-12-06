@@ -12,6 +12,7 @@ class CameraTurret(Turret):
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__(q1, q2, pOffset, p12, orig)
         self.targets = targets
+        self.num_q = 2
 
         # Only need to run initSimCamera for simulations
         self.initSimCamera()
@@ -188,8 +189,7 @@ class CameraTurret(Turret):
         num_steps = np.ceil(t_elapse / time_step).astype('int')
         period = 2 * r2 / num_steps
         t = q2_range[0]   # t initialized to pi because of zero configuration offest from yz-plane
-        num_q = 2
-        q_steps = np.zeros([num_q+1, num_steps+1])
+        q_steps = np.zeros([self.num_q+1, num_steps+1])
 
         for i in range(num_steps+1):
             # parametrize path to q2 = t, q1 = a*sin(b*(t-c))+d with zero_config offset
@@ -201,6 +201,8 @@ class CameraTurret(Turret):
         return q_steps
 
     def inverseKin(self, targetPos):
+        # MATLAB code from Robotics class used as reference
+
         # Solve for both q1 and q2 using subproblem 2
         # POT = R01 @ P12 + R01 @ R12 @ P2T
         # R01 @ P12 = P12, R01^T(P0T - P12) = R12 @ P2T
@@ -218,21 +220,31 @@ class CameraTurret(Turret):
         p2T_f = p2T_f / np.linalg.norm(p2T_f)
         p2T_f = p2T_f * np.linalg.norm(self.pOffset)
 
-        lhs = R01T @ p2T_f
-        rhs = R12 @ self.pOffset
-
         #  0 -1  0
         #  0  0  1
         # -1  0  0
 
-        cond = np.linalg.norm(self.pOffset) - p2T_f[2][0]
-        v1 = np.array([0, -1, 0, 0, 0, 1, -1, 0, 0]).reshape(3, 3) @ np.array([-p2T_f[2][0], 0, cond**0.5]).reshape(3, 1)
+        pk1 = -p2T_f[2][0]
+        pk2 = -self.pOffset[0][0]
+        a = np.array([pk1, pk2]).reshape(2, 1)
+        cond = np.linalg.norm(p2T_f)**2 - np.linalg.norm(a)**2
+        v1 = np.array([-pk2, cond**0.5, -pk1]).reshape(3, 1)
+        
+        pp11 = p2T_f - np.array([0, 0, -pk1]).reshape(3, 1)
+        pp21 = v1 - np.array([0, 0, -pk1]).reshape(3, 1)
+        pp12 = self.pOffset - np.array([-pk2, 0, 0]).reshape(3, 1)
+        pp22 = v1 - np.array([-pk2, 0, 0]).reshape(3, 1)
 
-        # set up subproblem 1, only take first solution for subproblem 2
-        q1_sol = sp.solve(lhs - v1, self.q1)
-        q2_sol = sp.solve(rhs - v1, self.q2)
+        numer1 = (pp11 / np.linalg.norm(pp11)) - (pp21 / np.linalg.norm(pp21))
+        denom1 = (pp11 / np.linalg.norm(pp11)) + (pp21 / np.linalg.norm(pp21))
+        numer2 = (pp12 / np.linalg.norm(pp12)) - (pp22 / np.linalg.norm(pp22))
+        denom2 = (pp12 / np.linalg.norm(pp12)) + (pp22 / np.linalg.norm(pp22))
 
-        return q1_sol, q2_sol
+        q1_sol = np.arctan2(np.linalg.norm(numer1), np.linalg.norm(denom1))
+        q2_sol = np.arctan2(np.linalg.norm(numer2), np.linalg.norm(denom2))
+        #print(q1_sol, q2_sol)
+
+        return np.array([q1_sol, q2_sol]).reshape(2, 1)
 
 # Helper function to get range of an angle
 # r = (min, max)

@@ -40,6 +40,7 @@ class CameraMotion():
 
 		try:
 			self.currentPos = self.Comms.get('cState').payload
+			#print("new state: ", self.currentPos)
 		except queue.Empty:
 			pass
 
@@ -66,27 +67,35 @@ class CameraMotion():
 
 	def run(self):
 		sweepPath, duration = self.getFullSweep()
+		sweepInit = np.array(sweepPath[1:3, 0]).reshape(2, 1)
+		print(sweepInit)
 		self.sendPath(sweepPath)
 
 		startTime = time.time()
 		#print(path, duration)
 
+		# self.currentPos is incorrect, fixes should happen in hardware_interface
 		while(True):
 			self.receive()
 
 			if self.currentTarget.size:
 				targetPos = self.cameraTurret.inverseKin(self.currentTarget)
 				targetPath = self.cameraTurret.scurvePath(self.currentPos, targetPos, 10, 3, 0.1)
+				#print(self.currentPos)
 				self.sendPath(targetPath)
 
 				# Hardcoded to duration of scurve * 2, may need to switch to when gun shoots (another connection)
 				time.sleep(6)
 				self.currentTarget = np.array([])
 			else:
-				if time.time() - startTime >= duration*1.5 and not self.gunPath.size:
+				if time.time() - startTime >= duration*1.5:
+					# Destination is start of sweep path, hardcoded to (-np.pi/4, -np.pi/4)
+					# because sweep path init is hardcoded to this point
+					self.sendPath(self.cameraTurret.scurvePath(self.currentPos, sweepInit, 10, 2, 0.1))
+					# Hardcoded to duration of scurve * 2
+					time.sleep(4)
 					self.sendPath(sweepPath)
 					startTime = time.time()
-					self.gunPath = np.array([])
 
 				# Estimate of how long simulation actually takes vs expected duration
 				# Need to test to get accurate scale

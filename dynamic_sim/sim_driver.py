@@ -39,9 +39,9 @@ def main():
         procs.append(p)
         p.start()
 
-        # p = mp.Process(target=worker, args=('camera_motion',))
-        # procs.append(p)
-        # p.start()
+        p = mp.Process(target=worker, args=('camera_motion',))
+        procs.append(p)
+        p.start()
 
         p = mp.Process(target=worker, args=('hardware_interface',))
         procs.append(p)
