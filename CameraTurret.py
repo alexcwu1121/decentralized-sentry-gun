@@ -47,6 +47,7 @@ class CameraTurret(Turret):
 
                 Line(self.orig, p_1, "orange", 8),
                 Line(p_1, p_2, "orange", 8),
+                DottedLine(p_1, p_1 + 5*(p_2 - p_1), "black", 2, 10),
                 DottedLine(self.orig, target_rep, "red", 2, 10),
                 DottedLine(lens_pos, target_rep, "blue", 2, 10),
                 Point(self.orig, 'black', 10),
@@ -219,6 +220,7 @@ class CameraTurret(Turret):
         p2T_f = targetPos - self.p12
         p2T_f = p2T_f / np.linalg.norm(p2T_f)
         p2T_f = p2T_f * np.linalg.norm(self.pOffset)
+        print(p2T_f / np.linalg.norm(p2T_f))
 
         #  0 -1  0
         #  0  0  1
