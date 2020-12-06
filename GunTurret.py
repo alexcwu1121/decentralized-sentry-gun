@@ -143,7 +143,7 @@ class GunTurret(Turret):
         p2T = sp.Matrix(self.pOffset) + sp.Matrix([[0], [self.dh], [self.dv]])
         d = exT * (sp.Matrix(self.p12) + p2T)
 
-        # Solve kinematic chain for q1. Only ever one solution.
+        # Solve kinematic chain for q1. Two solutions.
         q1_sol = sp.solve(expr - d, self.q1)[0][0]
 
         # Substitute q1 into kinematic chain and solve for q2 using subproblem 3
@@ -153,6 +153,8 @@ class GunTurret(Turret):
         # lhs_norm = rhs_norm
         #
         # Since system has an extra t variable due to trajectory, use z relation
+
+        # find current pOffset by rotations, vector projection of p
 
         lhs = Rzq1.T * (sp.Matrix(self.p0T) - sp.Matrix(self.p01) - Rzq1 * sp.Matrix(self.p12))
         lhs_val = lhs.subs(self.q1, q1_sol)
