@@ -3,6 +3,7 @@ import multiprocessing as mp
 import os
 import sys
 from example_pub import ExamplePub
+from example_camera_pub import ExampleCameraPub
 from camera_motion import CameraMotion
 from hardware_interface import HardwareInterface
 from camera_interface import CameraInterface
@@ -34,7 +35,7 @@ def main():
     is_sim = True
 
     try:
-        #p = mp.Process(target=worker, args=('example_pub',))
+        #p = mp.Process(target=worker, args=('example_pub', is_sim))
         #procs.append(p)
         #p.start()
 
@@ -42,9 +43,9 @@ def main():
         procs.append(p)
         p.start()
 
-        p = mp.Process(target=worker, args=('example_camera_pub', is_sim))
-        procs.append(p)
-        p.start()
+        #p = mp.Process(target=worker, args=('example_camera_pub', is_sim))
+        #procs.append(p)
+        #p.start()
 
         p = mp.Process(target=worker, args=('hardware_interface', is_sim))
         procs.append(p)
@@ -55,9 +56,9 @@ def main():
         p.start()
 
         # Uncomment once camera motion is implemented
-        # p = mp.Process(target=worker, args=('camera_motion', is_sim))
-        # procs.append(p)
-        # p.start()
+        p = mp.Process(target=worker, args=('camera_motion', is_sim))
+        procs.append(p)
+        p.start()
 
     except KeyboardInterrupt:
         print('Interrupted')

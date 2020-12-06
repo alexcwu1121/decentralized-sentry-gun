@@ -65,7 +65,7 @@ class CameraMotion():
 
 		return np.concatenate((q_mat, q_mat2), axis=1), duration*2
 
-	def run(self):
+	def runS(self):
 		sweepPath, duration = self.getFullSweep()
 		sweepInit = np.array(sweepPath[1:3, 0]).reshape(2, 1)
 		print(sweepInit)
@@ -88,7 +88,7 @@ class CameraMotion():
 				time.sleep(6)
 				self.currentTarget = np.array([])
 			else:
-				if time.time() - startTime >= duration*1.5:
+				if time.time() - startTime >= duration*1.1:
 					# Destination is start of sweep path, hardcoded to (-np.pi/4, -np.pi/4)
 					# because sweep path init is hardcoded to this point
 					self.sendPath(self.cameraTurret.scurvePath(self.currentPos, sweepInit, 10, 2, 0.1))
@@ -101,6 +101,13 @@ class CameraMotion():
 				# Need to test to get accurate scale
 				# Also add conditional to see if target is found before duration is over
 
-
 			time.sleep(0.02)
 
+	def runR(self):
+		pass
+
+	def run(self, is_sim):
+		if is_sim:
+			self.runS()
+		else:
+			self.runR()
