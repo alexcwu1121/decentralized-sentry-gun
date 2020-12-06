@@ -23,7 +23,8 @@ class HardwareInterface():
         self.name = "hardware"
         self.gun_config = np.array([[0, 0]]).T
         self.camera_config = np.array([[0, 0]]).T
-
+        self.gunReady = True
+        self.gunTurretReady = False
         # When a target has been detected and
         self.cameraPath = None
         self.gunPath = None
@@ -42,6 +43,8 @@ class HardwareInterface():
         """
         Reads servo configurations and updates internal state (hardware)
         """
+        # TODO: Read the gun state from Arduino
+        self.gunReady = True
         return 0
 
     def readStateS(self):
@@ -56,6 +59,7 @@ class HardwareInterface():
         """
         Writes a servo configuration (hardware)
         """
+
         pass
 
     def writeCamS(self, ctarg):
@@ -126,6 +130,22 @@ class HardwareInterface():
         except queue.Empty:
             pass
 
+
+    def fireTheShot(self):
+        # TODO: Send a fire command to the gun to Arduino and start reloading
+        self.gunReady = False
+
+    def checkTurretReady(self):
+        """
+        Check if the turret is aiming at the target
+        """
+        error = 0.02
+        if self.gunPath[-1][0] * (1 - error) < self.gun_config[0] < self.gunPath[-1][0] * (1 + error) and \
+           self.gunPath[-1][1] * (1 - error) < self.gun_config[1] < self.gunPath[-1][1] * (1 + error):
+            self.gunReady = True
+        else:
+            self.gunReady = False
+
     def run(self):
         """
         Check subscriber bus for path matrix. If path is found, clear cameraPath and replace with new path.
@@ -141,21 +161,20 @@ class HardwareInterface():
             # Update configuration states and publish them
             self.readStateS()
             self.publishState()
-
+            self.checkTurretReady()
             # Pull path matrix from queue and replace existing matrices
             self.receivePath()
 
             # If path steps exist and sufficient time has elapsed since the last write, write again
-            if  (self.gunPath is not None) and\
-                    (self.gunPath.shape[1] != 0) and\
-                    (time.time() - prev_gun_write >= gun_write_delay):
+            if self.gunPath is not None and self.gunPath.shape[1] != 0 and\
+               time.time() - prev_gun_write >= gun_write_delay:
 
                 # Write config
                 self.writeGunS(self.gunPath[1:3, 0:1])
                 prev_gun_write = time.time()
 
                 # Set new delay
-                if(self.gunPath.shape[1] > 1):
+                if self.gunPath.shape[1] > 1:
                     # subtract next timestamp from current timestamp for delay
                     gun_write_delay = self.gunPath[0][1] - self.gunPath[0][0]
                 else:
@@ -164,16 +183,15 @@ class HardwareInterface():
                 # Pop current config
                 self.gunPath = self.gunPath[0:3, 1:]
 
-            if (self.cameraPath is not None) and\
-                    (self.cameraPath.shape[1] != 0) and\
-                    (time.time() - prev_camera_write >= camera_write_delay):
+            if self.cameraPath is not None and self.cameraPath.shape[1] != 0 and\
+               time.time() - prev_camera_write >= camera_write_delay:
 
                 # Write config
                 self.writeCamS(self.cameraPath[1:3, 0:1])
                 prev_camera_write = time.time()
 
                 # Set new delay
-                if(self.cameraPath.shape[1] > 1):
+                if self.cameraPath.shape[1] > 1:
                     # subtract next timestamp from current timestamp for delay
                     camera_write_delay = self.cameraPath[0][1] - self.cameraPath[0][0]
                 else:
@@ -181,7 +199,8 @@ class HardwareInterface():
 
                 # Pop current config
                 self.cameraPath = self.cameraPath[0:3, 1:]
-
+            if self.gunReady and self.gunTurretReady:
+                self.fireTheShot()
             # Display simulation.
             self.sim_out.update()
             # Hardware interface updates 50 times a second
