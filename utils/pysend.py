@@ -9,9 +9,15 @@ Test script for:
     2. Threaded receive from serial
 """
 
-# global configuration states
+# global configuration states updated by receive from arduino
 gun_config = np.array([[0, 0]]).T
 camera_config = np.array([[0, 0]]).T
+gun_ready = [0]
+
+# commands to be sent to arduino
+gun_command = np.array([[30, 0]]).T
+camera_command = np.array([[30, 0]]).T
+fire_gun = [1]
 
 # Establish serial port and baud rate
 ard = serial.Serial('COM3', 9600)
@@ -38,7 +44,25 @@ def receive():
         for c in ard.read():
             if chr(c) == ':':
                 # parse return from arduino
-                print(line)
+                print("".join(line))
+
+                # Run comma delimited parse on [2:]
+                parsed = "".join(line[2:]).split(',')
+                if(line[0] == 'c'):
+                    camera_config[0][0] = float(parsed[0])
+                    camera_config[1][0] = float(parsed[1])
+                elif(line[0] == 'g'):
+                    gun_config[0][0] = float(parsed[0])
+                    gun_config[1][0] = float(parsed[1])
+                elif (line[0] == 's'):
+                    gun_ready[0] = float(parsed[0])
+
+                """
+                print(camera_config)
+                print(gun_config)
+                print(gun_ready)
+                """
+
                 line = []
                 break
             else:
@@ -50,9 +74,11 @@ if __name__ == "__main__":
     t.start()
 
     while True:
-        writeGunTurret(camera_config)
-        #writeCamTurret(gun_config)
-        #writeGun()
-        time.sleep(.05)
+        writeCamTurret(camera_command)
+        time.sleep(.1)
+        writeGunTurret(gun_command)
+        time.sleep(.1)
+        writeGun()
+        time.sleep(.1)
 
     #print("c:{},{}\n".format(gun_config[0][0], gun_config[1][0]).encode())
