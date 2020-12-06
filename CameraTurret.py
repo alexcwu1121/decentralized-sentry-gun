@@ -28,6 +28,11 @@ class CameraTurret(Turret):
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
 
+        # p_1alpha, p_1beta, p_1gamma are for visualization purposes only
+        p_1alpha = self.orig + R01 @ np.array([0, 0, self.p12[2][0]]).reshape(3, 1)
+        p_1beta = p_1alpha + R01 @ np.array([0, self.p12[1][0], 0]).reshape(3, 1)
+        p_1gamma = p_1beta + R01 @ np.array([self.p12[0][0], 0, 0]).reshape(3, 1)
+
         #print(self.targetsInView())
 
         # Visualization of camera plane
@@ -45,14 +50,17 @@ class CameraTurret(Turret):
                 Line(np.array([p_2[0][0], 0, 0]).reshape(3, 1), np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1),
                      "black", 2),
 
-                Line(self.orig, p_1, "orange", 8),
                 Line(p_1, p_2, "orange", 8),
                 DottedLine(p_1, p_1 + 5*(p_2 - p_1), "black", 2, 10),
+                Line(self.orig, p_1alpha, "orange", 8),
+                Line(p_1alpha, p_1beta, "orange", 8),
+                Line(p_1beta, p_1gamma, "orange", 8),
+
                 DottedLine(self.orig, target_rep, "red", 2, 10),
                 DottedLine(lens_pos, target_rep, "blue", 2, 10),
-                Point(self.orig, 'black', 10),
-                Point(p_1, 'black', 10),
-                Point(p_2, 'black', 10),
+                Point(self.orig, 'black', 8),
+                Point(p_1, 'black', 8),
+                Point(p_2, 'black', 8),
                 ] +  camera_plane_entities
 
     # Function only relevant for simulations, so take focal length and view angle as parameters
