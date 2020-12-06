@@ -5,13 +5,16 @@ sys.path.insert(0,parentdir)
 
 from comms import Comms
 import numpy as np
-from Engine import Engine
+import cv2
+import cv2.aruco as aruco
 from Target import Target
 from CameraTurret import CameraTurret
 import time
 import queue
 from utils.coordination_calculator import xRot, yRot, zRot
 #from RobotRaconteur.Client import *
+
+# Temporary global variables for Aruco dictionary and camera params config locations
 
 """
 Grabs frames from camera and runs forward kinematics on detected markers
