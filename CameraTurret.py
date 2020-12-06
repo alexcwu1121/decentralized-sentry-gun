@@ -7,8 +7,8 @@ from utils.coordination_calculator import xRot, yRot, zRot
 
 
 class CameraTurret(Turret):
-    def __init__(self, targets = None, q1=0, q2=0, pOffset=np.array([0, 50, 0]).reshape(3, 1),
-                 p12=np.array([0, 0, 75]).reshape(3, 1),
+    def __init__(self, targets = None, q1=0, q2=0, pOffset=np.array([-10, 0, 0]).reshape(3, 1),
+                 p12=np.array([0, 74, 60]).reshape(3, 1),
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__(q1, q2, pOffset, p12, orig)
         self.targets = targets
@@ -61,17 +61,17 @@ class CameraTurret(Turret):
         R12 = xRot(self.q2_given)
 
         corner_list = []
-        corner_list.append(p_2 + R01 @ R12 @ np.array([self.focal_length * np.tan(self.view_angle/2),
-                                                       self.focal_length,
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
+                                                       self.focal_length * np.tan(self.view_angle/2),
                                                        self.focal_length * np.tan(self.view_angle/2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length * np.tan(self.view_angle / 2),
-                                                       self.focal_length,
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
+                                                       -self.focal_length * np.tan(self.view_angle / 2),
                                                        self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length * np.tan(self.view_angle / 2),
-                                                       self.focal_length,
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
+                                                      -self.focal_length * np.tan(self.view_angle / 2),
                                                        -self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([self.focal_length * np.tan(self.view_angle / 2),
-                                                       self.focal_length,
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
+                                                       self.focal_length * np.tan(self.view_angle / 2),
                                                        -self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
 
         entities = []
