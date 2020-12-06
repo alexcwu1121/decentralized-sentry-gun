@@ -65,6 +65,7 @@ class HardwareInterface():
         # Updates engine with new configurations and draws
         self.sim_out.clearGeometries()
 
+        #print("ctarg: ", ctarg)
         self.camera_config = ctarg
 
         # Grid and target dimensions are hardcoded

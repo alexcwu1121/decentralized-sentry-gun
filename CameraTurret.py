@@ -216,7 +216,7 @@ class CameraTurret(Turret):
                          [0, -sp.sin(self.q2), sp.cos(self.q2)]])
 
         # self.pOffset = p2T where T is at end effector of turret
-        p2T_f = targetPos - self.orig - self.p12
+        p2T_f = targetPos - self.p12
         p2T_f = p2T_f / np.linalg.norm(p2T_f)
         p2T_f = p2T_f * np.linalg.norm(self.pOffset)
 

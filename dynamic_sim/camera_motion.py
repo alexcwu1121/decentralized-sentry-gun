@@ -102,5 +102,5 @@ class CameraMotion():
 				# Also add conditional to see if target is found before duration is over
 
 
-			time.sleep(0.2)
+			time.sleep(0.02)
 
