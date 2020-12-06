@@ -20,7 +20,7 @@ def worker(type, args=None):
         hardware_interface.run()
     elif type == 'camera_motion':
         camera_motion = CameraMotion()
-        camera_motion.run()
+        camera_motion.runSweep()
     elif type == 'camera_interface':
         camera_interface = CameraInterface()
         camera_interface.run()

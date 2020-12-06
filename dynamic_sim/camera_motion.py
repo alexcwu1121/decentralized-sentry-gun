@@ -26,7 +26,6 @@ class CameraMotion():
 		self.Comms = Comms()
 		self.Comms.add_subscriber_port('127.0.0.1', '3000', 'cState')
 		self.Comms.add_publisher_port('127.0.0.1', '3002', 'cameraPath')
-		self.Comms.add_subscriber_port('127.0.0.1', '3003', 'gunPath')
 		self.Comms.add_subscriber_port('127.0.0.1', '3004', 'targetPos')
 
 	def sendPath(self, path):
@@ -41,11 +40,6 @@ class CameraMotion():
 		try:
 			self.currentPos = self.Comms.get('cState').payload
 			#print("new state: ", self.currentPos)
-		except queue.Empty:
-			pass
-
-		try:
-			self.gunPath = self.Comms.get('gunPath').payload
 		except queue.Empty:
 			pass
 
@@ -101,6 +95,17 @@ class CameraMotion():
 				# Need to test to get accurate scale
 				# Also add conditional to see if target is found before duration is over
 
+
+			time.sleep(0.02)
+
+	def runSweep(self):
+		sweepPath, duration = self.getFullSweep()
+		startTime = 0
+
+		while(True):
+			if time.time() - startTime >= duration*1.5:
+				self.sendPath(sweepPath)
+				startTime = time.time()
 
 			time.sleep(0.02)
 
