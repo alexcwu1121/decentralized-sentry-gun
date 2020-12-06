@@ -58,26 +58,3 @@ if __name__ == "__main__":
         e.update()
         time.sleep(1)
 
-    """current_configuration = "initial_configuration"
-    count = 0
-    #time = 0
-    period = 0.01
-    stop_time = 999
-    moving = False
-    while True:
-        e.update()
-        if not moving:
-            coordinate = "receive from camera turret"
-            confiuration_matrix = "calculate path with current configuration and the coordinate"
-            run_time = "should return together with the matrix"
-            period = float(run_time) / (len(confiuration_matrix) - 1)
-            stop_time = time.clock() + run_time
-        else:
-            if time.clock() <= stop_time:
-                current_configuration = confiuration_matrix[count]
-                count += 1
-            else:
-                move = False
-        time.sleep(period)"""
-
-

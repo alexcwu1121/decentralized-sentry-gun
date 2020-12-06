@@ -30,11 +30,6 @@ class HardwareInterface():
         self.gunReady = True
         self.gunTurretReady = False
 
-        # Establish serial port and baud rate
-        # self.ard = serial.Serial('COM3', 9600)
-        # if (self.ard.isOpen() == False):
-        #     self.ard.open()
-
         # When a target has been detected and
         self.cameraPath = None
         self.gunPath = None
@@ -48,6 +43,12 @@ class HardwareInterface():
         self.Comms.add_publisher_port('127.0.0.1', '3001', 'gState')
         self.Comms.add_subscriber_port('127.0.0.1', '3002', 'cameraPath')
         self.Comms.add_subscriber_port('127.0.0.1', '3003', 'gunPath')
+
+    def initSerial(self):
+        # Establish serial port and baud rate
+        self.ard = serial.Serial('COM3', 9600)
+        if (self.ard.isOpen() == False):
+            self.ard.open()
 
     def readStateR(self):
         line = []
@@ -242,6 +243,8 @@ class HardwareInterface():
         Check subscriber bus for path matrix. If path is found, clear cameraPath and replace with new path.
         If no path is found,
         """
+        self.initSerial()
+
         prev_gun_write = time.time()
         gun_write_delay = 0
 
