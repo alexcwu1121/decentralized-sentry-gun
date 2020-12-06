@@ -3,7 +3,7 @@ import multiprocessing as mp
 import os
 import sys
 from example_pub import ExamplePub
-from example_camera_pub import ExampleCameraPub
+from camera_motion import CameraMotion
 from hardware_interface import HardwareInterface
 from camera_interface import CameraInterface
 from gun_motion import GunMotion
@@ -39,7 +39,7 @@ def main():
         procs.append(p)
         p.start()
 
-        p = mp.Process(target=worker, args=('example_camera_pub',))
+        p = mp.Process(target=worker, args=('camera_motion',))
         procs.append(p)
         p.start()
 
@@ -50,11 +50,6 @@ def main():
         p = mp.Process(target=worker, args=('camera_interface',))
         procs.append(p)
         p.start()
-
-        # Uncomment once camera motion is implemented
-        # p = mp.Process(target=worker, args=('camera_motion',))
-        # procs.append(p)
-        # p.start()
 
     except KeyboardInterrupt:
         print('Interrupted')

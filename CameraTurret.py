@@ -12,6 +12,7 @@ class CameraTurret(Turret):
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__(q1, q2, pOffset, p12, orig)
         self.targets = targets
+        self.num_q = 2
 
         # Only need to run initSimCamera for simulations
         self.initSimCamera()
@@ -177,8 +178,6 @@ class CameraTurret(Turret):
     # (0, 0) is camera turret at zero configuration
     # increasing t_elapse decreases speed of camera
     def sweepPath(self, t_elapse, time_step = 0.1, q1_range = (-np.pi, np.pi), q2_range = (-np.pi, np.pi)):
-        init_q = np.array([q1_range[0], q2_range[0]]).reshape(2, 1)
-        dest_q = np.array([q1_range[1], q2_range[1]]).reshape(2, 1)
         r1 = getRange(q1_range)
         r2 = getRange(q2_range)
         a = r1
@@ -190,19 +189,62 @@ class CameraTurret(Turret):
         num_steps = np.ceil(t_elapse / time_step).astype('int')
         period = 2 * r2 / num_steps
         t = q2_range[0]   # t initialized to pi because of zero configuration offest from yz-plane
-        num_q = 2
-        q_steps = np.zeros([num_q+1, num_steps+1])
+        q_steps = np.zeros([self.num_q+1, num_steps+1])
 
         for i in range(num_steps+1):
-            timestamp = i * time_step
-
-            # parametrize path to q2 = t, q1 = a*sin(b*t)
+            # parametrize path to q2 = t, q1 = a*sin(b*(t-c))+d with zero_config offset
             q_step = np.array([(a*np.sin(b*(t-c))+d)+np.pi/2, t]).reshape(2, 1)
             q_steps[0, i:i+1] = (i * time_step)
             q_steps[1:3,i:i+1] = q_step
             t += period
 
         return q_steps
+
+    def inverseKin(self, targetPos):
+        # MATLAB code from Robotics class used as reference
+
+        # Solve for both q1 and q2 using subproblem 2
+        # POT = R01 @ P12 + R01 @ R12 @ P2T
+        # R01 @ P12 = P12, R01^T(P0T - P12) = R12 @ P2T
+        # k1 = -ez, p1 = p0T - p12 = p2T_target, k2 = -ex, p2 = p2T
+
+        R01T = sp.Matrix([[sp.cos(self.q1), sp.sin(self.q1), 0],
+                            [-sp.sin(self.q1), sp.cos(self.q1), 0],
+                            [0, 0, 1]])
+        R12 = sp.Matrix([[1, 0, 0],
+                         [0, sp.cos(self.q2), sp.sin(self.q2)],
+                         [0, -sp.sin(self.q2), sp.cos(self.q2)]])
+
+        # self.pOffset = p2T where T is at end effector of turret
+        p2T_f = targetPos - self.p12
+        p2T_f = p2T_f / np.linalg.norm(p2T_f)
+        p2T_f = p2T_f * np.linalg.norm(self.pOffset)
+
+        #  0 -1  0
+        #  0  0  1
+        # -1  0  0
+
+        pk1 = -p2T_f[2][0]
+        pk2 = -self.pOffset[0][0]
+        a = np.array([pk1, pk2]).reshape(2, 1)
+        cond = np.linalg.norm(p2T_f)**2 - np.linalg.norm(a)**2
+        v1 = np.array([-pk2, cond**0.5, -pk1]).reshape(3, 1)
+        
+        pp11 = p2T_f - np.array([0, 0, -pk1]).reshape(3, 1)
+        pp21 = v1 - np.array([0, 0, -pk1]).reshape(3, 1)
+        pp12 = self.pOffset - np.array([-pk2, 0, 0]).reshape(3, 1)
+        pp22 = v1 - np.array([-pk2, 0, 0]).reshape(3, 1)
+
+        numer1 = (pp11 / np.linalg.norm(pp11)) - (pp21 / np.linalg.norm(pp21))
+        denom1 = (pp11 / np.linalg.norm(pp11)) + (pp21 / np.linalg.norm(pp21))
+        numer2 = (pp12 / np.linalg.norm(pp12)) - (pp22 / np.linalg.norm(pp22))
+        denom2 = (pp12 / np.linalg.norm(pp12)) + (pp22 / np.linalg.norm(pp22))
+
+        q1_sol = np.arctan2(np.linalg.norm(numer1), np.linalg.norm(denom1))
+        q2_sol = np.arctan2(np.linalg.norm(numer2), np.linalg.norm(denom2))
+        #print(q1_sol, q2_sol)
+
+        return np.array([q1_sol, q2_sol]).reshape(2, 1)
 
 # Helper function to get range of an angle
 # r = (min, max)
