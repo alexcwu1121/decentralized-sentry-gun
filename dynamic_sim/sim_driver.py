@@ -26,7 +26,7 @@ def worker(type, is_sim):
     elif type == 'camera_motion':
         camera_motion = CameraMotion()
         time.sleep(3)
-        camera_motion.run(is_sim)
+        camera_motion.runSweep()
     elif type == 'camera_interface':
         camera_interface = CameraInterface()
         time.sleep(3)
@@ -50,9 +50,9 @@ def main():
         procs.append(p)
         p.start()
 
-        # p = mp.Process(target=worker, args=('example_camera_pub', is_sim))
-        # procs.append(p)
-        # p.start()
+        #p = mp.Process(target=worker, args=('example_camera_pub', is_sim))
+        #procs.append(p)
+        #p.start()
 
         p = mp.Process(target=worker, args=('hardware_interface', is_sim))
         procs.append(p)
