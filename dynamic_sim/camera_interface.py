@@ -87,7 +87,47 @@ class CameraInterface():
 
     # TODO perform opencv marker detection
     def runR(self):
-        pass
+        # get camera parameters
+        cameraMatrix = np.array([])
+        distCoeffs = np.array([])
+        with open('cameraData.json', 'r') as cameraData:
+            for camera in cameraData['cameras']:
+                if camera['name'] == 'Sahith Mac':
+                    parameters = camera['parameters']
+                    cameraMatrix = np.array([parameters['lw'], 0, parameters['u0'], 0, parameters['lh'], parameters['v0'], 0, 0, 1]).reshape(3, 3)
+                    distCoeffs = np.array([parameters['distortions']])
+        
+        while(True):
+            # If a time delay has passed, grab a frame (in simulation, do nothing)
+            if (time.time() - prev_frame >= frame_delay):
+                self.grabFrame()
+                prev_frame = time.time()
+
+            # Update camera turret coords
+            self.getCState()
+
+            # run marker detection on frame
+            targets = None
+
+            # Get new targets and add to log set
+            new_targets = {key: targets[key] for key in (targets.keys() - self.target_log)}
+            self.target_log = self.target_log | new_targets.keys()
+
+            # if marker detected (or target is within view range for simulation), compute forward kinematics.
+            #   for simulation, first derive target in camera frame, then run forward kinematics
+            # on target and publish with topic set to marker id.
+            R01 = zRot(self.cTurret.q1_given)
+            R12 = xRot(self.cTurret.q2_given)
+            p_1 = self.cTurret.orig + R01 @ self.cTurret.p12
+            p_2 = p_1 + R01 @ R12 @ self.cTurret.pOffset
+            t_links = self.cTurret.getTargetLinks(p_2, new_targets.values())
+
+            for (t_link, target) in zip(t_links, new_targets.keys()):
+                targ_pos = self.cTurret.representTarget(t_link)
+                self.publishPos(target, targ_pos)
+                print(targ_pos)
+
+            time.sleep(.02)
 
     def run(self, is_sim):
         if is_sim:

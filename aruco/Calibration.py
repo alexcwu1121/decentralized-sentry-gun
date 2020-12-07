@@ -5,6 +5,7 @@
 import numpy
 import cv2
 from cv2 import aruco
+import json
 
 
 # ChAruco board variables
@@ -102,7 +103,7 @@ for img in images:
         cv2.imshow('Charuco board', img)
         cv2.waitKey(0)
     else:
-        print("Not able to detect a charuco board in image", count)
+        print("Unable to detect a charuco board in image", count)
 
 # Destroy any open CV windows
 cv2.destroyAllWindows()
@@ -131,8 +132,42 @@ calibration, cameraMatrix, distCoeffs, rvecs, tvecs = aruco.calibrateCameraCharu
         imageSize=image_size,
         cameraMatrix=None,
         distCoeffs=None)
-    
-# Print matrix and distortion coefficient to the console
+
+# Print matrix and distortion coefficient to json
+distCoeffs = distCoeffs.tolist()
+cameraMatrix = cameraMatrix.tolist()
+with open('cameraData.json', 'w+') as output:
+    found = False
+    if len(output.readlines()) > 0:
+        calibrationData = json.load(output)
+        for data in calibrationData['cameras']:
+            # Change the name for each camera
+            if data['name'] == 'Sahith Mac':
+                data['parameters'] = {
+                    'lw': cameraMatrix[0][0],
+                    'lh': cameraMatrix[1][1],
+                    'u0': cameraMatrix[0][2],
+                    'v0': cameraMatrix[1][2],
+                    'distortions': distCoeffs[0]
+                    }
+                found = True
+    else:
+        calibrationData = {}
+        calibrationData['cameras'] = []
+
+    if not found:
+        calibrationData['cameras'].append({
+            'name': 'Sahith Mac',
+            'parameters': {
+                'lw': cameraMatrix[0][0],
+                'lh': cameraMatrix[1][1],
+                'u0': cameraMatrix[0][2],
+                'v0': cameraMatrix[1][2],
+                'distortions': distCoeffs[0]
+                }
+            })
+    json.dump(calibrationData, output, indent=4)
+
 print(cameraMatrix)
 print(distCoeffs)
     
