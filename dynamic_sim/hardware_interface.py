@@ -151,8 +151,12 @@ class HardwareInterface():
 
     def drawSim(self, cameraPos, gunPos):
         self.sim_out.addGeometry([Grid(20, 20)])
-        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
-        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")],
+        self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0"),
+                                  Target(np.array([0, 100, 150]).reshape(3, 1), "t1"),
+                                  Target(np.array([0, 150, 150]).reshape(3, 1), "t2")])
+        self.sim_out.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0"),
+                                                Target(np.array([0, 100, 150]).reshape(3, 1), "t1"),
+                                                Target(np.array([0, 150, 150]).reshape(3, 1), "t2")],
                                     cameraPos[0, 0],
                                     cameraPos[1, 0]
                                     )])
