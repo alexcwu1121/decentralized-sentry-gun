@@ -24,7 +24,9 @@ class CameraInterface():
         self.target_log = set()
 
         # Targets defined here for simulation only
-        self.cTurret = CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
+        self.cTurret = CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0"),
+                                     Target(np.array([0, 100, 150]).reshape(3, 1), "t1"),
+                                     Target(np.array([0, 150, 150]).reshape(3, 1), "t2")])
 
         self.Comms = Comms()
         self.Comms.add_subscriber_port('127.0.0.1', '3000', 'cState')
@@ -33,7 +35,9 @@ class CameraInterface():
     def getCState(self):
         try:
             camera_pos = self.Comms.get('cState').payload
-            self.cTurret = CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")],
+            self.cTurret = CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0"),
+                                         Target(np.array([0, 100, 150]).reshape(3, 1), "t1"),
+                                         Target(np.array([0, 150, 150]).reshape(3, 1), "t2")],
                                         camera_pos[0][0],
                                         camera_pos[1][0])
         except queue.Empty:
