@@ -14,10 +14,10 @@ class GunMotion():
         self.dest_configuration = np.array([[0, 0]]).T
 
         # Configuration comparison tolerance (rad)
-        self.tol = .05
+        self.tol = .025
 
-        # Remember previous state to track state transitions
-        self.prev_state = False
+        # First target indicator to skip delay
+        self.first_targ = True
 
         # queue of P0Ts to process
         self.targets = []
@@ -49,27 +49,19 @@ class GunMotion():
         self.Comms.define_and_send(self.name, 'gunPath', pathMatrix)
 
     def compareTol(self):
-        # If there is no destination, comparison fails
-        if not self.dest_configuration:
-            return False
-
-        # If there is a destination, see if configs matche
+        # If there is a destination, see if configs match
         #for q, q_prime in zip(self.actual_configuration, self.dest_configuration):
         for i in range(self.actual_configuration.shape[0]):
             if (self.actual_configuration[i][0] > self.dest_configuration[i][0] + self.tol or
                     self.actual_configuration[i][0] < self.dest_configuration[i][0] - self.tol):
                 return False
 
-        # If the configs match, then there is a guaranteed state change. Set destination to none, now
-        # that it has been reached.
-        self.dest_configuration = None
-
         # Delay for as long as the gun takes to wind up and shoot
         # For real demo, about 6 seconds
-        time.sleep(2)
-
-        print("pass")
-        print(self.dest_configuration)
+        if self.first_targ:
+            self.first_targ = False
+        else:
+            time.sleep(6)
 
         # Allow another path matrix to be sent
         return True
@@ -81,13 +73,21 @@ class GunMotion():
         """
         while True:
             self.receive()
-            if self.compareTol and len(self.targets) > 0:
+            """
+            if self.prev_path_time is not None and time.time() > self.prev_path_time + self.delay_time:
+                self.prev_path_time = None
+                continue
+            """
+            if self.compareTol() and len(self.targets) > 0:
                 self.gTurret.setP0T(self.targets.pop(0))
                 q1, q2, toa, f = self.gTurret.inverseKin(print_time=True)
                 pathMatrix = self.gTurret.scurvePath(self.actual_configuration,
                                                          np.array([q1, q2]).reshape(2, 1),
                                                          10, 1.5, .05)
 
-                self.target = False
+                self.dest_configuration = np.array([[pathMatrix[1][pathMatrix.shape[1]-1],
+                                                     pathMatrix[2][pathMatrix.shape[1]-1]]]).T
+
                 self.publish(pathMatrix)
+
             time.sleep(.02)
