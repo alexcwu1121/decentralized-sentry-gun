@@ -19,6 +19,9 @@ class GunMotion():
         # First target indicator to skip delay
         self.first_targ = True
 
+        # Time to wait for gun to fire
+        self.delay = 2
+
         # queue of P0Ts to process
         self.targets = []
 
@@ -61,7 +64,7 @@ class GunMotion():
         if self.first_targ:
             self.first_targ = False
         else:
-            time.sleep(6)
+            time.sleep(self.delay)
 
         # Allow another path matrix to be sent
         return True
