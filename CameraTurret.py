@@ -211,11 +211,11 @@ class CameraTurret(Turret):
         # MATLAB code from Robotics class used as reference
 
         # Solve for both q1 and q2 using subproblem 2
-        # POT = R01 @ P12 + R01 @ R12 @ P2T
-        # R01 @ P12 = P12, R01^T(P0T - P12) = R12 @ P2T
-        # k1 = -ez, p1 = p0T - p12 = p2T_target, k2 = -ex, p2 = p2T
+        # P0T = R01 @ P12 + R01 @ R12 @ (P23 + P3T)     --- use this
+        # R01^T @ P0T = P12 + R12 @ (P23 + P3T)
+        # k1 = -ez, p1 = p0T - p12 = p2T_target, k2 = ey, p2 = p2T
 
-        R01T = zRot_s(self.q1)
+        R01T = zRot_s(-self.q1)
         R12 = yRot_s(self.q2)
 
         # self.pOffset = p2T where T is at end effector of turret
@@ -229,15 +229,15 @@ class CameraTurret(Turret):
         # -1  0  0
 
         pk1 = -p2T_f[2][0]
-        pk2 = -self.pOffset[0][0]
+        pk2 = -self.pOffset[1][0]
         a = np.array([pk1, pk2]).reshape(2, 1)
         cond = np.linalg.norm(p2T_f)**2 - np.linalg.norm(a)**2
-        v1 = np.array([-pk2, cond**0.5, -pk1]).reshape(3, 1)
+        v1 = np.array([cond**0.5, pk2, -pk1]).reshape(3, 1)
         
         pp11 = p2T_f - np.array([0, 0, -pk1]).reshape(3, 1)
         pp21 = v1 - np.array([0, 0, -pk1]).reshape(3, 1)
-        pp12 = self.pOffset - np.array([-pk2, 0, 0]).reshape(3, 1)
-        pp22 = v1 - np.array([-pk2, 0, 0]).reshape(3, 1)
+        pp12 = self.pOffset - np.array([0, pk2, 0]).reshape(3, 1)
+        pp22 = v1 - np.array([0, pk2, 0]).reshape(3, 1)
 
         numer1 = (pp11 / np.linalg.norm(pp11)) - (pp21 / np.linalg.norm(pp21))
         denom1 = (pp11 / np.linalg.norm(pp11)) + (pp21 / np.linalg.norm(pp21))

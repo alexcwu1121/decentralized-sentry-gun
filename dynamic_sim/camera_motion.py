@@ -82,7 +82,7 @@ class CameraMotion():
 				time.sleep(6)
 				self.currentTarget = np.array([])
 			else:
-				if time.time() - startTime >= duration*1.1:
+				if time.time() - startTime >= duration*1.5:
 					# Destination is start of sweep path, hardcoded to (-np.pi/4, -np.pi/4)
 					# because sweep path init is hardcoded to this point
 					self.sendPath(self.cameraTurret.scurvePath(self.currentPos, sweepInit, 10, 2, 0.1))
@@ -113,7 +113,7 @@ class CameraMotion():
 
 	def run(self, is_sim):
 		if is_sim:
-      # Change this function to run sweep only vs full motion mode
+      		# Change this function to run sweep only vs full motion mode
 			self.runSweep()
 		else:
 			self.runR()

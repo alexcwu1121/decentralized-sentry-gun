@@ -11,11 +11,7 @@ import time
 class GunTurret(Turret):
     def __init__(self, q1_given, q2_given, v0, p0T,
                  p01=np.array([0, -100, 0]).reshape(3, 1),
-<<<<<<< HEAD
-                 p12=np.array([-3, 0, 50]).reshape(3, 1),
-=======
                  p12=np.array([3, 0, 50]).reshape(3, 1),
->>>>>>> origin/new-links
                  pOffset=np.array([-43.5, 0, -11.7]).reshape(3, 1),
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__(q1_given, q2_given, pOffset, p12, orig)
