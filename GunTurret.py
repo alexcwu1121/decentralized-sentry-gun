@@ -145,7 +145,6 @@ class GunTurret(Turret):
 
         # Solve kinematic chain for q1. Two solutions.
         q1_sols = sp.solve(expr - d, self.q1)
-        print("q1_sols: ", q1_sols)
         q1_sol = q1_sols[0][0]
 
         # Substitute q1 into kinematic chain and solve for q2 using subproblem 3
@@ -173,9 +172,6 @@ class GunTurret(Turret):
         esys = sp.Matrix([[lhs_norm - rhs_norm], [lhs_z - rhs_z]])
 
         over_sol = sp.nsolve((esys), [self.q2, self.t], [np.pi/4, 1.25], modules=['mpmath'])
-        print("over_sol: ", over_sol)
-        print("over_sol0: ", over_sol[0])
-        print("over_sol1: ", over_sol[1])
 
         if print_time:
             print(time.time() - start_time)
