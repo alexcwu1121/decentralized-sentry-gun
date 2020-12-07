@@ -39,13 +39,13 @@ class GunTurret(Turret):
         # 2. Plug in provided q1 and q2 into homogenous transform and find f. Apply pathing with some large toa.
 
         # Method 1
-        #q1, q2, toa, f = self.inverseKin()
+        q1, q2, toa, f = self.inverseKin()
 
         # Method 2
-        q1 = self.q1_given
-        q2 = self.q2_given
-        toa = 10
-        f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
+        # q1 = self.q1_given
+        # q2 = self.q2_given
+        # toa = 10
+        # f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
 
         R01 = zRot(q1)
         R12 = xRot(q2)
@@ -172,7 +172,7 @@ class GunTurret(Turret):
 
         esys = sp.Matrix([[lhs_norm - rhs_norm], [lhs_z - rhs_z]])
 
-        over_sol = sp.nsolve((esys), [self.q2, self.t], [0, 0], modules=['mpmath'])
+        over_sol = sp.nsolve((esys), [self.q2, self.t], [np.pi/4, 1.25], modules=['mpmath'])
         print("over_sol: ", over_sol)
         print("over_sol0: ", over_sol[0])
         print("over_sol1: ", over_sol[1])

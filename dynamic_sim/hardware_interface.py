@@ -31,9 +31,9 @@ class HardwareInterface():
         self.gunTurretReady = False
 
         # Establish serial port and baud rate
-        self.ard = serial.Serial('COM3', 9600)
-        if (self.ard.isOpen() == False):
-            self.ard.open()
+        # self.ard = serial.Serial('COM3', 9600)
+        # if (self.ard.isOpen() == False):
+        #     self.ard.open()
 
         # When a target has been detected and
         self.cameraPath = None
