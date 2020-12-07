@@ -47,12 +47,12 @@ class Engine:
 
 if __name__ == "__main__":
     e = Engine(np.array([150, 150, 150]).reshape(3, 1),
-               np.array([np.pi/2-.4, np.pi/4 + .2, .3]).reshape(3, 1))
+               np.array([np.pi/2-.4, -1, .3]).reshape(3, 1))
 
     e.addGeometry([Grid(20, 20)])
     e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
     e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])])
-    e.addGeometry([GunTurret(0, 0, 40, [-100, 50, 100])])
+    e.addGeometry([GunTurret(0, 0, 70, [-100, 50, 100])])
 
     while(True):
         e.update()

@@ -36,7 +36,7 @@ class HardwareInterface():
 
         # Simulation graphics engine
         self.sim_out = Engine(np.array([150, 150, 150]).reshape(3, 1),
-                   np.array([np.pi / 2 - .4, np.pi / 4 + .2, .3]).reshape(3, 1))
+               np.array([np.pi/2-.4, -1, .3]).reshape(3, 1))
 
         self.Comms = Comms()
         self.Comms.add_publisher_port('127.0.0.1', '3000', 'cState')
@@ -158,7 +158,7 @@ class HardwareInterface():
                                     )])
         self.sim_out.addGeometry([GunTurret(gunPos[0, 0],
                                  gunPos[1, 0],
-                                 40, [-100, 50, 100])])
+                                 70, [-100, 50, 100])])
 
 
     # def fireTheShot(self):

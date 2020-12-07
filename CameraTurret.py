@@ -3,7 +3,7 @@ import sympy as sp
 from Entity import Line, Point, DottedLine
 from Geometry import Geometry
 from Turret import Turret
-from utils.coordination_calculator import xRot, yRot, zRot
+from utils.coordination_calculator import *
 
 
 class CameraTurret(Turret):
@@ -49,8 +49,8 @@ class CameraTurret(Turret):
                      "black", 2),
                 Line(np.array([p_2[0][0], 0, 0]).reshape(3, 1), np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1),
                      "black", 2),
-
                 Line(p_1, p_2, "orange", 8),
+                DottedLine(p_1, p_1 + 5*(p_2 - p_1), "black", 2, 10),
                 Line(self.orig, p_1alpha, "orange", 8),
                 Line(p_1alpha, p_1beta, "orange", 8),
                 Line(p_1beta, p_1gamma, "orange", 8),
@@ -215,17 +215,14 @@ class CameraTurret(Turret):
         # R01 @ P12 = P12, R01^T(P0T - P12) = R12 @ P2T
         # k1 = -ez, p1 = p0T - p12 = p2T_target, k2 = -ex, p2 = p2T
 
-        R01T = sp.Matrix([[sp.cos(self.q1), sp.sin(self.q1), 0],
-                            [-sp.sin(self.q1), sp.cos(self.q1), 0],
-                            [0, 0, 1]])
-        R12 = sp.Matrix([[1, 0, 0],
-                         [0, sp.cos(self.q2), sp.sin(self.q2)],
-                         [0, -sp.sin(self.q2), sp.cos(self.q2)]])
+        R01T = zRot_s(self.q1)
+        R12 = yRot_s(self.q2)
 
         # self.pOffset = p2T where T is at end effector of turret
         p2T_f = targetPos - self.p12
         p2T_f = p2T_f / np.linalg.norm(p2T_f)
         p2T_f = p2T_f * np.linalg.norm(self.pOffset)
+        print(p2T_f / np.linalg.norm(p2T_f))
 
         #  0 -1  0
         #  0  0  1

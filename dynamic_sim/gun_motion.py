@@ -51,6 +51,7 @@ class GunMotion():
                 self.pathMatrix = self.gTurret.scurvePath(self.configuration,
                                                          np.array([q1, q2]).reshape(2, 1),
                                                          10, 1.5, .05)
+
                 self.target = False
                 self.publish()
             time.sleep(.02)
