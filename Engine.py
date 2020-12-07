@@ -47,37 +47,14 @@ class Engine:
 
 if __name__ == "__main__":
     e = Engine(np.array([150, 150, 150]).reshape(3, 1),
-               np.array([np.pi/2-.4, np.pi/4 + .2, .3]).reshape(3, 1))
+               np.array([np.pi/2-.4, -1, .3]).reshape(3, 1))
 
     e.addGeometry([Grid(20, 20)])
-    e.addGeometry([Target(np.array([0, 200, 200]).reshape(3, 1), "t0")])
-    e.addGeometry([CameraTurret([Target(np.array([0, 200, 200]).reshape(3, 1), "t0")])])
-    e.addGeometry([GunTurret(0, 0, 80, [-100, 150, 200])])
+    e.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])
+    e.addGeometry([CameraTurret([Target(np.array([0, 100, 100]).reshape(3, 1), "t0")])])
+    e.addGeometry([GunTurret(0, 0, 70, [-100, 50, 100])])
 
     while(True):
         e.update()
         time.sleep(1)
-
-    """current_configuration = "initial_configuration"
-    count = 0
-    #time = 0
-    period = 0.01
-    stop_time = 999
-    moving = False
-    while True:
-        e.update()
-        if not moving:
-            coordinate = "receive from camera turret"
-            confiuration_matrix = "calculate path with current configuration and the coordinate"
-            run_time = "should return together with the matrix"
-            period = float(run_time) / (len(confiuration_matrix) - 1)
-            stop_time = time.clock() + run_time
-        else:
-            if time.clock() <= stop_time:
-                current_configuration = confiuration_matrix[count]
-                count += 1
-            else:
-                move = False
-        time.sleep(period)"""
-
 

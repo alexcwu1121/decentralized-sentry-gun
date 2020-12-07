@@ -73,7 +73,7 @@ class CameraInterface():
             #   for simulation, first derive target in camera frame, then run forward kinematics
             # on target and publish with topic set to marker id.
             R01 = zRot(self.cTurret.q1_given)
-            R12 = xRot(self.cTurret.q2_given)
+            R12 = yRot(self.cTurret.q2_given)
             p_1 = self.cTurret.orig + R01 @ self.cTurret.p12
             p_2 = p_1 + R01 @ R12 @ self.cTurret.pOffset
             t_links = self.cTurret.getTargetLinks(p_2, new_targets.values())

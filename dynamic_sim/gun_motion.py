@@ -12,7 +12,7 @@ class GunMotion():
         self.target = None
         self.pathMatrix = None
 
-        self.gTurret = GunTurret(0, 0, 40, [-100, 50, 100])
+        self.gTurret = GunTurret(0, 0, 70, [-100, 50, 100])
 
         self.Comms = Comms()
         self.Comms.add_subscriber_port('127.0.0.1', '3001', 'gState')
@@ -51,6 +51,7 @@ class GunMotion():
                 self.pathMatrix = self.gTurret.scurvePath(self.configuration,
                                                          np.array([q1, q2]).reshape(2, 1),
                                                          10, 1.5, .05)
+
                 self.target = False
                 self.publish()
             time.sleep(.02)

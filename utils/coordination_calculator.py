@@ -9,7 +9,7 @@ def xRot(theta):
 
 
 def yRot(theta):
-    return np.array([[cos(theta), 0, -sin(theta)],
+    return np.array([[cos(theta), 0, sin(theta)],
                    [0, 1, 0],
                    [-sin(theta), 0, cos(theta)]])
 
@@ -26,7 +26,7 @@ def xRot_s(theta):
 
 
 def yRot_s(theta):
-    return sp.Matrix([[sp.cos(theta), 0, -sp.sin(theta)],
+    return sp.Matrix([[sp.cos(theta), 0, sp.sin(theta)],
                    [0, 1, 0],
                    [-sp.sin(theta), 0, sp.cos(theta)]])
 

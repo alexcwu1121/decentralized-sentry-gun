@@ -11,8 +11,8 @@ import time
 class GunTurret(Turret):
     def __init__(self, q1_given, q2_given, v0, p0T,
                  p01=np.array([0, -100, 0]).reshape(3, 1),
-                 p12=np.array([0, 0, 75]).reshape(3, 1),
-                 pOffset=np.array([0, 50, 0]).reshape(3, 1),
+                 p12=np.array([3, 0, 50]).reshape(3, 1),
+                 pOffset=np.array([-43.5, 0, -11.7]).reshape(3, 1),
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__(q1_given, q2_given, pOffset, p12, orig)
         self.v0 = v0
@@ -39,16 +39,16 @@ class GunTurret(Turret):
         # 2. Plug in provided q1 and q2 into homogenous transform and find f. Apply pathing with some large toa.
 
         # Method 1
-        q1, q2, toa, f = self.inverseKin()
+        #q1, q2, toa, f = self.inverseKin()
 
         # Method 2
-        # q1 = self.q1_given
-        # q2 = self.q2_given
-        # toa = 10
-        # f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
+        q1 = self.q1_given
+        q2 = self.q2_given
+        toa = 10
+        f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
 
         R01 = zRot(q1)
-        R12 = xRot(q2)
+        R12 = yRot(q2)
 
         p_1 = self.orig + self.p01 + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
@@ -107,14 +107,16 @@ class GunTurret(Turret):
         J[0:6, 0:1] = sp.Matrix([0, 0, 1, 0, 0, 0])
 
         T12 = sp.eye(4)
-        T12[0:3, 0:3] = xRot_s(self.q2)
+        T12[0:3, 0:3] = yRot_s(self.q2)
         T12[0:3, 3:4] = sp.Matrix(self.p12)
 
-        J = phi(sp.Matrix(xRot_s(self.q1).T), sp.Matrix(self.p12)) * J
+        J = phi(sp.Matrix(yRot_s(self.q1).T), sp.Matrix(self.p12)) * J
         J[0:6, 1:2] = sp.Matrix([1, 0, 0, 0, 0, 0])
 
         T2T = sp.eye(4)
-        p2T = sp.Matrix(self.pOffset) + sp.Matrix([[0], [self.dh], [self.dv]])
+        # trajectory correction, since initial angle is -15 degrees and not 0
+        p2T = sp.Matrix(self.pOffset) + yRot_s(-0.261799) * sp.Matrix([[-self.dh], [0], [self.dv]])
+        #p2T = sp.Matrix(self.pOffset) + sp.Matrix([[-self.dh], [0], [self.dv]])
         T2T[0:3, 3:4] = p2T
 
         # Complex prismatic joint, not along axes
@@ -131,17 +133,19 @@ class GunTurret(Turret):
 
         # Arrange kinematic chain into subproblem 4
         # P0T = P01 + R12 @ P12 + R12 @ R2T @ P2T
-        # ezT(P12 + P2T) = exT @ Rz(q1)T @ (P0T - P01)
-        # Where P2T is pOffset + [0, dh, dv] = [0; l2 + dh; dv]
-        exT = sp.Matrix([[1, 0, 0]])
+        # P0T - P01 = Rz(q1) @ P12 + Rz(q1) @ Ry(q2) @ P2T
+        # Rz(q1)T @ (P0T - P01) = P12 + Ry(q2) @ P2T
+        # ey * Rz(q1)T @ (P0T - P01) = ey * (P12 + P2T)
+        # Where P2T is pOffset + [dh, 0, dv] = [dh + l2; 0; dv + l2']
+        eyT = sp.Matrix([[0, 1, 0]])
         Rzq1 = sp.Matrix([[sp.cos(self.q1), -sp.sin(self.q1), 0],
                             [sp.sin(self.q1), sp.cos(self.q1), 0],
                             [0, 0, 1]])
 
-        expr = exT * Rzq1 * (sp.Matrix(self.p0T) - sp.Matrix(self.p01))
-
-        p2T = sp.Matrix(self.pOffset) + sp.Matrix([[0], [self.dh], [self.dv]])
-        d = exT * (sp.Matrix(self.p12) + p2T)
+        expr = eyT * Rzq1 * (sp.Matrix(self.p0T) - sp.Matrix(self.p01))
+        p2T = sp.Matrix(self.pOffset) + yRot_s(-0.261799) * sp.Matrix([[-self.dh], [0], [self.dv]])
+        #p2T = sp.Matrix(self.pOffset) + sp.Matrix([[-self.dh], [0], [self.dv]])
+        d = eyT * (sp.Matrix(self.p12) + p2T)
 
         # Solve kinematic chain for q1. Two solutions.
         q1_sols = sp.solve(expr - d, self.q1)
@@ -161,22 +165,26 @@ class GunTurret(Turret):
         lhs_norm = (lhs_val[0]**2 + lhs_val[1]**2 + lhs_val[2]**2)**.5
         lhs_z = lhs_val[2]
 
-        Rxq2 = sp.Matrix([[1, 0, 0],
+        """
+        Ryq2 = sp.Matrix([[1, 0, 0],
                          [0, sp.cos(self.q2), -sp.sin(self.q2)],
                          [0, sp.sin(self.q2), sp.cos(self.q2)]])
+        """
 
-        rhs = Rxq2 * p2T
+        Ryq2 = yRot_s(self.q2)
+
+        rhs = Ryq2 * p2T
         rhs_norm = (rhs[0]**2 + rhs[1]**2 + rhs[2]**2)**.5
         rhs_z = rhs[2]
 
         esys = sp.Matrix([[lhs_norm - rhs_norm], [lhs_z - rhs_z]])
-
-        over_sol = sp.nsolve((esys), [self.q2, self.t], [np.pi/4, 1.25], modules=['mpmath'])
+        
+        over_sol = sp.nsolve((esys), [self.q2, self.t], [np.pi/4, .5], modules=['mpmath'])
 
         if print_time:
             print(time.time() - start_time)
 
-        return -q1_sol, over_sol[0], over_sol[1], (self.p01 + Rzq1*self.p12 + Rzq1*Rxq2*p2T).subs([[self.q1, -q1_sol],
+        return -q1_sol, over_sol[0], over_sol[1], (self.p01 + Rzq1*self.p12 + Rzq1*Ryq2*p2T).subs([[self.q1, -q1_sol],
                                                                                                    [self.q2, over_sol[0]]])
 
 # for testing
