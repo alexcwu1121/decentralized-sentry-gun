@@ -43,9 +43,9 @@ def main():
         procs.append(p)
         p.start()
 
-        #p = mp.Process(target=worker, args=('example_camera_pub', is_sim))
-        #procs.append(p)
-        #p.start()
+        p = mp.Process(target=worker, args=('example_camera_pub', is_sim))
+        procs.append(p)
+        p.start()
 
         p = mp.Process(target=worker, args=('hardware_interface', is_sim))
         procs.append(p)
@@ -56,9 +56,9 @@ def main():
         p.start()
 
         # Uncomment once camera motion is implemented
-        p = mp.Process(target=worker, args=('camera_motion', is_sim))
-        procs.append(p)
-        p.start()
+        #p = mp.Process(target=worker, args=('camera_motion', is_sim))
+        #procs.append(p)
+        #p.start()
 
     except KeyboardInterrupt:
         print('Interrupted')

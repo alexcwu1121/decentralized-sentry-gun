@@ -48,7 +48,7 @@ class GunTurret(Turret):
         # f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
 
         R01 = zRot(q1)
-        R12 = xRot(q2)
+        R12 = yRot(q2)
 
         p_1 = self.orig + self.p01 + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
@@ -107,10 +107,10 @@ class GunTurret(Turret):
         J[0:6, 0:1] = sp.Matrix([0, 0, 1, 0, 0, 0])
 
         T12 = sp.eye(4)
-        T12[0:3, 0:3] = xRot_s(self.q2)
+        T12[0:3, 0:3] = yRot_s(self.q2)
         T12[0:3, 3:4] = sp.Matrix(self.p12)
 
-        J = phi(sp.Matrix(xRot_s(self.q1).T), sp.Matrix(self.p12)) * J
+        J = phi(sp.Matrix(yRot_s(self.q1).T), sp.Matrix(self.p12)) * J
         J[0:6, 1:2] = sp.Matrix([1, 0, 0, 0, 0, 0])
 
         T2T = sp.eye(4)
@@ -131,17 +131,19 @@ class GunTurret(Turret):
 
         # Arrange kinematic chain into subproblem 4
         # P0T = P01 + R12 @ P12 + R12 @ R2T @ P2T
-        # ezT(P12 + P2T) = exT @ Rz(q1)T @ (P0T - P01)
-        # Where P2T is pOffset + [0, dh, dv] = [0; l2 + dh; dv]
+        # ezT(P12 + P2T) = ezT @ Rz(q1)T @ (P0T - P01)
+        # Where P2T is pOffset + [dh, 0, dv] = [dh + l2; 0; dv + l2']
         exT = sp.Matrix([[1, 0, 0]])
+        eyT = sp.Matrix([[0, 1, 0]])
+        ezT = sp.Matrix([[0, 0, 1]])
         Rzq1 = sp.Matrix([[sp.cos(self.q1), -sp.sin(self.q1), 0],
                             [sp.sin(self.q1), sp.cos(self.q1), 0],
                             [0, 0, 1]])
 
-        expr = exT * Rzq1 * (sp.Matrix(self.p0T) - sp.Matrix(self.p01))
+        expr = eyT * Rzq1 * (sp.Matrix(self.p0T) - sp.Matrix(self.p01))
 
-        p2T = sp.Matrix(self.pOffset) + sp.Matrix([[0], [self.dh], [self.dv]])
-        d = exT * (sp.Matrix(self.p12) + p2T)
+        p2T = sp.Matrix(self.pOffset) + sp.Matrix([[-self.dh], [0], [self.dv]])
+        d = eyT * (sp.Matrix(self.p12) + p2T)
 
         # Solve kinematic chain for q1. Two solutions.
         q1_sols = sp.solve(expr - d, self.q1)

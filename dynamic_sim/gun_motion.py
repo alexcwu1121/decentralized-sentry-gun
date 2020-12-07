@@ -12,7 +12,7 @@ class GunMotion():
         self.target = None
         self.pathMatrix = None
 
-        self.gTurret = GunTurret(0, 0, 40, [-100, 50, 100])
+        self.gTurret = GunTurret(0, 0, 70, [-100, 50, 100])
 
         self.Comms = Comms()
         self.Comms.add_subscriber_port('127.0.0.1', '3001', 'gState')

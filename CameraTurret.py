@@ -23,7 +23,7 @@ class CameraTurret(Turret):
 
     def getEntities(self):
         R01 = zRot(self.q1_given)
-        R12 = xRot(self.q2_given)
+        R12 = yRot(self.q2_given)
 
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
@@ -67,7 +67,7 @@ class CameraTurret(Turret):
     def cameraPlaneBounds(self, p_2):
         # Typical webcam view angles between 55 (0.959931 rad) and 65 degrees (1.13446 rad)
         R01 = zRot(self.q1_given)
-        R12 = xRot(self.q2_given)
+        R12 = yRot(self.q2_given)
 
         corner_list = []
         corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
@@ -98,7 +98,7 @@ class CameraTurret(Turret):
         # Compute getTargetLinks
         # Compute angle between x/y and z axes and check if they lie within view range
         R01 = zRot(self.q1_given)
-        R12 = xRot(self.q2_given)
+        R12 = yRot(self.q2_given)
 
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
@@ -107,7 +107,7 @@ class CameraTurret(Turret):
         in_view = dict()
 
         for t_link, target in zip(t_links, self.targets):
-            tvec = zRot(np.pi) @ xRot(np.pi/2) @ t_link
+            tvec = zRot(np.pi) @ yRot(np.pi/2) @ t_link
             if tvec[2][0] < 0:
                 continue
             if abs(np.arctan2(tvec[0][0], tvec[2][0])) < self.view_angle/2 and \
@@ -125,7 +125,7 @@ class CameraTurret(Turret):
 
             # (c_t)c = R20(c_t)o
             R01 = zRot(self.q1_given)
-            R12 = xRot(self.q2_given)
+            R12 = yRot(self.q2_given)
 
             R02 = R01 @ R12
             R20 = R02.transpose()
@@ -133,7 +133,7 @@ class CameraTurret(Turret):
 
             # Set axes relative to Aruco camera axis
             # Produces a 'tvec', a pinhole camera translation vector given by Aruco
-            #c_tc = zRot(np.pi) @ xRot(np.pi/2) @ c_tc
+            #c_tc = zRot(np.pi) @ yRot(np.pi/2) @ c_tc
 
             # TODO Rotate axes back to camera frame.
             # Rotates tvec to camera frame. Final offset sent to POE
@@ -156,7 +156,7 @@ class CameraTurret(Turret):
         # e^(h1xq1) = Rz(q1)
         # e^(h2xq2) = Rx(q2)
         R01 = zRot(self.q1_given)
-        R12 = xRot(self.q2_given)
+        R12 = yRot(self.q2_given)
 
         # Define HTMS
         # T01 = |R01    p01|
@@ -202,7 +202,7 @@ class CameraTurret(Turret):
 
         for i in range(num_steps+1):
             # parametrize path to q2 = t, q1 = a*sin(b*(t-c))+d with zero_config offset
-            q_step = np.array([(a*np.sin(b*(t-c))+d)+np.pi/2, t]).reshape(2, 1)
+            q_step = np.array([(a*np.sin(b*(t-c))+d), t]).reshape(2, 1)
             q_steps[0, i:i+1] = (i * time_step)
             q_steps[1:3,i:i+1] = q_step
             t += period
