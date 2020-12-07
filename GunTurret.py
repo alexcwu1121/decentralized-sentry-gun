@@ -39,13 +39,13 @@ class GunTurret(Turret):
         # 2. Plug in provided q1 and q2 into homogenous transform and find f. Apply pathing with some large toa.
 
         # Method 1
-        q1, q2, toa, f = self.inverseKin()
+        #q1, q2, toa, f = self.inverseKin()
 
         # Method 2
-        # q1 = self.q1_given
-        # q2 = self.q2_given
-        # toa = 10
-        # f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
+        q1 = self.q1_given
+        q2 = self.q2_given
+        toa = 10
+        f = self.T.subs([[self.q1, q1], [self.q2, q2]])[0:3, 3:4]
 
         R01 = zRot(q1)
         R12 = yRot(q2)
