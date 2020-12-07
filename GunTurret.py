@@ -143,7 +143,6 @@ class GunTurret(Turret):
                             [0, 0, 1]])
 
         expr = eyT * Rzq1 * (sp.Matrix(self.p0T) - sp.Matrix(self.p01))
-
         p2T = sp.Matrix(self.pOffset) + yRot_s(-0.261799) * sp.Matrix([[-self.dh], [0], [self.dv]])
         #p2T = sp.Matrix(self.pOffset) + sp.Matrix([[-self.dh], [0], [self.dv]])
         d = eyT * (sp.Matrix(self.p12) + p2T)
