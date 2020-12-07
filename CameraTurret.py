@@ -3,12 +3,12 @@ import sympy as sp
 from Entity import Line, Point, DottedLine
 from Geometry import Geometry
 from Turret import Turret
-from utils.coordination_calculator import xRot, yRot, zRot
+from utils.coordination_calculator import *
 
 
 class CameraTurret(Turret):
-    def __init__(self, targets = None, q1=0, q2=0, pOffset=np.array([0, 50, 0]).reshape(3, 1),
-                 p12=np.array([0, 0, 75]).reshape(3, 1),
+    def __init__(self, targets = None, q1=0, q2=0, pOffset=np.array([-10, 0, 0]).reshape(3, 1),
+                 p12=np.array([0, 74, 60]).reshape(3, 1),
                  orig=np.array([100, 50, 0]).reshape(3, 1)):
         super().__init__(q1, q2, pOffset, p12, orig)
         self.targets = targets
@@ -23,10 +23,15 @@ class CameraTurret(Turret):
 
     def getEntities(self):
         R01 = zRot(self.q1_given)
-        R12 = xRot(self.q2_given)
+        R12 = yRot(self.q2_given)
 
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
+
+        # p_1alpha, p_1beta, p_1gamma are for visualization purposes only
+        p_1alpha = self.orig + R01 @ np.array([0, 0, self.p12[2][0]]).reshape(3, 1)
+        p_1beta = p_1alpha + R01 @ np.array([0, self.p12[1][0], 0]).reshape(3, 1)
+        p_1gamma = p_1beta + R01 @ np.array([self.p12[0][0], 0, 0]).reshape(3, 1)
 
         #print(self.targetsInView())
 
@@ -45,34 +50,37 @@ class CameraTurret(Turret):
                 Line(np.array([p_2[0][0], 0, 0]).reshape(3, 1), np.array([p_2[0][0], p_2[1][0], 0]).reshape(3, 1),
                      "black", 2),
 
-                Line(self.orig, p_1, "orange", 8),
                 Line(p_1, p_2, "orange", 8),
                 DottedLine(p_1, p_1 + 5*(p_2 - p_1), "black", 2, 10),
+                Line(self.orig, p_1alpha, "orange", 8),
+                Line(p_1alpha, p_1beta, "orange", 8),
+                Line(p_1beta, p_1gamma, "orange", 8),
+
                 DottedLine(self.orig, target_rep, "red", 2, 10),
                 DottedLine(lens_pos, target_rep, "blue", 2, 10),
-                Point(self.orig, 'black', 10),
-                Point(p_1, 'black', 10),
-                Point(p_2, 'black', 10),
+                Point(self.orig, 'black', 8),
+                Point(p_1, 'black', 8),
+                Point(p_2, 'black', 8),
                 ] +  camera_plane_entities
 
     # Function only relevant for simulations, so take focal length and view angle as parameters
     def cameraPlaneBounds(self, p_2):
         # Typical webcam view angles between 55 (0.959931 rad) and 65 degrees (1.13446 rad)
         R01 = zRot(self.q1_given)
-        R12 = xRot(self.q2_given)
+        R12 = yRot(self.q2_given)
 
         corner_list = []
-        corner_list.append(p_2 + R01 @ R12 @ np.array([self.focal_length * np.tan(self.view_angle/2),
-                                                       self.focal_length,
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
+                                                       self.focal_length * np.tan(self.view_angle/2),
                                                        self.focal_length * np.tan(self.view_angle/2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length * np.tan(self.view_angle / 2),
-                                                       self.focal_length,
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
+                                                       -self.focal_length * np.tan(self.view_angle / 2),
                                                        self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length * np.tan(self.view_angle / 2),
-                                                       self.focal_length,
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
+                                                      -self.focal_length * np.tan(self.view_angle / 2),
                                                        -self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
-        corner_list.append(p_2 + R01 @ R12 @ np.array([self.focal_length * np.tan(self.view_angle / 2),
-                                                       self.focal_length,
+        corner_list.append(p_2 + R01 @ R12 @ np.array([-self.focal_length,
+                                                       self.focal_length * np.tan(self.view_angle / 2),
                                                        -self.focal_length * np.tan(self.view_angle / 2)]).reshape(3, 1))
 
         entities = []
@@ -90,7 +98,7 @@ class CameraTurret(Turret):
         # Compute getTargetLinks
         # Compute angle between x/y and z axes and check if they lie within view range
         R01 = zRot(self.q1_given)
-        R12 = xRot(self.q2_given)
+        R12 = yRot(self.q2_given)
 
         p_1 = self.orig + R01 @ self.p12
         p_2 = p_1 + R01 @ R12 @ self.pOffset
@@ -99,7 +107,7 @@ class CameraTurret(Turret):
         in_view = dict()
 
         for t_link, target in zip(t_links, self.targets):
-            tvec = zRot(np.pi) @ xRot(np.pi/2) @ t_link
+            tvec = zRot(np.pi) @ yRot(np.pi/2) @ t_link
             if tvec[2][0] < 0:
                 continue
             if abs(np.arctan2(tvec[0][0], tvec[2][0])) < self.view_angle/2 and \
@@ -117,7 +125,7 @@ class CameraTurret(Turret):
 
             # (c_t)c = R20(c_t)o
             R01 = zRot(self.q1_given)
-            R12 = xRot(self.q2_given)
+            R12 = yRot(self.q2_given)
 
             R02 = R01 @ R12
             R20 = R02.transpose()
@@ -125,7 +133,7 @@ class CameraTurret(Turret):
 
             # Set axes relative to Aruco camera axis
             # Produces a 'tvec', a pinhole camera translation vector given by Aruco
-            #c_tc = zRot(np.pi) @ xRot(np.pi/2) @ c_tc
+            #c_tc = zRot(np.pi) @ yRot(np.pi/2) @ c_tc
 
             # TODO Rotate axes back to camera frame.
             # Rotates tvec to camera frame. Final offset sent to POE
@@ -148,7 +156,7 @@ class CameraTurret(Turret):
         # e^(h1xq1) = Rz(q1)
         # e^(h2xq2) = Rx(q2)
         R01 = zRot(self.q1_given)
-        R12 = xRot(self.q2_given)
+        R12 = yRot(self.q2_given)
 
         # Define HTMS
         # T01 = |R01    p01|
@@ -194,7 +202,7 @@ class CameraTurret(Turret):
 
         for i in range(num_steps+1):
             # parametrize path to q2 = t, q1 = a*sin(b*(t-c))+d with zero_config offset
-            q_step = np.array([(a*np.sin(b*(t-c))+d)+np.pi/2, t]).reshape(2, 1)
+            q_step = np.array([(a*np.sin(b*(t-c))+d), t]).reshape(2, 1)
             q_steps[0, i:i+1] = (i * time_step)
             q_steps[1:3,i:i+1] = q_step
             t += period
@@ -209,12 +217,8 @@ class CameraTurret(Turret):
         # R01 @ P12 = P12, R01^T(P0T - P12) = R12 @ P2T
         # k1 = -ez, p1 = p0T - p12 = p2T_target, k2 = -ex, p2 = p2T
 
-        R01T = sp.Matrix([[sp.cos(self.q1), sp.sin(self.q1), 0],
-                            [-sp.sin(self.q1), sp.cos(self.q1), 0],
-                            [0, 0, 1]])
-        R12 = sp.Matrix([[1, 0, 0],
-                         [0, sp.cos(self.q2), sp.sin(self.q2)],
-                         [0, -sp.sin(self.q2), sp.cos(self.q2)]])
+        R01T = zRot_s(self.q1)
+        R12 = yRot_s(self.q2)
 
         # self.pOffset = p2T where T is at end effector of turret
         p2T_f = targetPos - self.p12
