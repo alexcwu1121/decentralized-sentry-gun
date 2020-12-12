@@ -2,7 +2,7 @@
 # - Linux Mint 18.1 Cinnamon 64-bit
 # - Python 2.7 with OpenCV 3.2.0
 
-import numpy
+import json
 import cv2
 from cv2 import aruco
 import json

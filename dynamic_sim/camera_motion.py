@@ -107,7 +107,7 @@ class CameraMotion():
 				startTime = time.time()
 
 			time.sleep(0.02)
-      
+
 	def runR(self):
 		pass
 
