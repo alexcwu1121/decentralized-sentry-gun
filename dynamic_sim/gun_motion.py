@@ -25,7 +25,7 @@ class GunMotion():
         # queue of P0Ts to process
         self.targets = []
 
-        self.gTurret = GunTurret(0, 0, 70, [-100, 50, 100])
+        self.gTurret = GunTurret(0, 0, 500, [-100, 50, 100])
 
         self.Comms = Comms()
         self.Comms.add_subscriber_port('127.0.0.1', '3001', 'gState')

@@ -173,7 +173,3 @@ print(distCoeffs)
     
 # Print to console our success
 print('Calibration successful.')
-
-# Export cameraMatrix and distCoeffs to json
-json.dump(cameraMatrix.tolist(), "camera_params.json")
-json.dump(distCoeffs.tolist(), "dist_coeffs.json")

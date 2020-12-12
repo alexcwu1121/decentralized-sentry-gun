@@ -13,33 +13,34 @@ from gun_motion import GunMotion
 def worker(type, is_sim):
     if type == 'example_pub':
         example_pub = ExamplePub()
-        time.sleep(3)
+        time.sleep(2)
         example_pub.run(is_sim)
     elif type == 'example_camera_pub':
         example_camera_pub = ExampleCameraPub()
-        time.sleep(3)
+        time.sleep(2)
         example_camera_pub.run(is_sim)
     elif type == 'hardware_interface':
         hardware_interface = HardwareInterface()
-        time.sleep(3)
-        hardware_interface.run(is_sim)
+        time.sleep(2)
+        #hardware_interface.run(is_sim)
+        hardware_interface.runS()
     elif type == 'camera_motion':
         camera_motion = CameraMotion()
-        time.sleep(3)
+        time.sleep(2)
         camera_motion.runSweep()
     elif type == 'camera_interface':
         camera_interface = CameraInterface()
-        time.sleep(3)
+        time.sleep(2)
         camera_interface.run(is_sim)
     elif type == 'gun_motion':
         gun_motion = GunMotion()
-        time.sleep(3)
+        time.sleep(2)
         gun_motion.run(is_sim)
 
 def main():
     procs = []
 
-    is_sim = True
+    is_sim = False
 
     try:
         #p = mp.Process(target=worker, args=('example_pub', is_sim))
@@ -62,9 +63,9 @@ def main():
         procs.append(p)
         p.start()
 
-        p = mp.Process(target=worker, args=('camera_motion', is_sim))
-        procs.append(p)
-        p.start()
+        #p = mp.Process(target=worker, args=('camera_motion', is_sim))
+        #procs.append(p)
+        #p.start()
 
     except KeyboardInterrupt:
         print('Interrupted')
