@@ -102,12 +102,12 @@ class CameraMotion():
 		startTime = 0
 
 		while(True):
-			if time.time() - startTime >= duration*1.5:
+			if time.time() - startTime >= duration*1.4:
 				self.sendPath(sweepPath)
 				startTime = time.time()
 
 			time.sleep(0.02)
-      
+
 	def runR(self):
 		pass
 

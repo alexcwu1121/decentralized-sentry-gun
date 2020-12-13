@@ -110,7 +110,7 @@ class GunTurret(Turret):
         T12[0:3, 0:3] = yRot_s(self.q2)
         T12[0:3, 3:4] = sp.Matrix(self.p12)
 
-        J = phi(sp.Matrix(yRot_s(self.q1).T), sp.Matrix(self.p12)) * J
+        J = phi(sp.Matrix(yRot_s(self.q2).T), sp.Matrix(self.p12)) * J
         J[0:6, 1:2] = sp.Matrix([1, 0, 0, 0, 0, 0])
 
         T2T = sp.eye(4)
