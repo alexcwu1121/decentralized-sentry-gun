@@ -3,7 +3,7 @@ from GunTurret import GunTurret
 from comms import Comms
 import time
 import queue
-
+from collections import deque
 
 class GunMotion():
     def __init__(self):
@@ -14,7 +14,7 @@ class GunMotion():
         self.dest_configuration = np.array([[0, 0]]).T
 
         # Configuration comparison tolerance (rad)
-        self.tol = .025
+        self.tol = .087
 
         # First target indicator to skip delay
         self.first_targ = True
@@ -23,7 +23,7 @@ class GunMotion():
         self.delay = 2
 
         # queue of P0Ts to process
-        self.targets = []
+        self.targets = deque()
 
         self.gTurret = GunTurret(0, 0, 500, [-100, 50, 100])
 
@@ -54,6 +54,10 @@ class GunMotion():
     def compareTol(self):
         # If there is a destination, see if configs match
         #for q, q_prime in zip(self.actual_configuration, self.dest_configuration):
+        #print("actual")
+        #print(self.actual_configuration)
+        #print("target")
+        #print(self.dest_configuration)
         for i in range(self.actual_configuration.shape[0]):
             if (self.actual_configuration[i][0] > self.dest_configuration[i][0] + self.tol or
                     self.actual_configuration[i][0] < self.dest_configuration[i][0] - self.tol):
@@ -82,7 +86,7 @@ class GunMotion():
                 continue
             """
             if self.compareTol() and len(self.targets) > 0:
-                self.gTurret.setP0T(self.targets.pop(0))
+                self.gTurret.setP0T(self.targets.popleft())
                 q1, q2, toa, f = self.gTurret.inverseKin(print_time=True)
                 pathMatrix = self.gTurret.scurvePath(self.actual_configuration,
                                                          np.array([q1, q2]).reshape(2, 1),
@@ -92,5 +96,4 @@ class GunMotion():
                                                      pathMatrix[2][pathMatrix.shape[1]-1]]]).T
 
                 self.publish(pathMatrix)
-
             time.sleep(.02)

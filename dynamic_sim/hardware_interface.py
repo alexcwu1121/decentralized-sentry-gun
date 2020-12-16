@@ -14,7 +14,6 @@ import serial
 import threading
 import time
 import queue
-#from RobotRaconteur.Client import *
 
 """
 Supports interface between both simulated and real hardware
@@ -26,6 +25,10 @@ class HardwareInterface():
         self.gun_config = np.array([[0, 0]]).T
         self.camera_config = np.array([[0, 0]]).T
         self.gun_ready = 0
+
+        self.gun_command = np.array([[0, 0]]).T
+        self.camera_command = np.array([[0, 0]]).T
+        self.shoot_command = 0
 
         self.gunReady = True
         self.gunTurretReady = False
@@ -61,19 +64,18 @@ class HardwareInterface():
                     # Run comma delimited parse on [2:]
                     parsed = "".join(line[2:]).split(',')
                     if (line[0] == 'c'):
-                        self.camera_config[0][0] = float(parsed[0])
-                        self.camera_config[1][0] = float(parsed[1])
+                        self.camera_config = np.array([[float(parsed[0]) * (np.pi/180),
+                                                        float(parsed[1]) * (np.pi/180)]]).T
                     elif (line[0] == 'g'):
-                        self.gun_config[0][0] = float(parsed[0])
-                        self.gun_config[1][0] = float(parsed[1])
+                        self.gun_config = np.array([[float(parsed[0]) * (np.pi/180),
+                                                     float(parsed[1]) * (np.pi/180)]]).T
+                        #print(self.gun_config)
                     elif (line[0] == 's'):
                         self.gun_ready = float(parsed[0])
 
-                    """
-                    print(camera_config)
-                    print(gun_config)
-                    print(gun_ready)
-                    """
+                    #print(self.camera_config)
+                    #print(self.gun_config)
+                    #print(self.gun_ready)
 
                     line = []
                     break
@@ -89,10 +91,9 @@ class HardwareInterface():
         self.gun_config = self.gun_config
 
     def writeCamR(self, ctarg):
-        """
-        Writes a servo configuration (hardware)
-        """
-        self.ard.write("c,{},{}:".format(ctarg[0][0], ctarg[1][0]).encode())
+        # Convert to degrees
+        #print(int(ctarg[0][0]*(180/np.pi)), int(ctarg[1][0]*(180/np.pi)))
+        self.ard.write("c,{},{}:".format(int(ctarg[0][0]*(180/np.pi)), int(ctarg[1][0]*(180/np.pi))).encode())
 
     def writeCamS(self, ctarg):
         """
@@ -109,7 +110,8 @@ class HardwareInterface():
         #self.sim_out.update()
 
     def writeGunR(self, gtarg):
-        self.ard.write("g,{},{}:".format(gtarg[0][0], gtarg[1][0]).encode())
+        # Convert to degrees
+        self.ard.write("g,{},{}:".format(int(gtarg[0][0]*(180/np.pi)), int(gtarg[1][0]*(180/np.pi))).encode())
 
     def writeGunS(self, gtarg):
         """
@@ -149,6 +151,7 @@ class HardwareInterface():
         except queue.Empty:
             pass
 
+
     def drawSim(self, cameraPos, gunPos):
         self.sim_out.addGeometry([Grid(20, 20)])
         self.sim_out.addGeometry([Target(np.array([0, 100, 100]).reshape(3, 1), "t0"),
@@ -162,23 +165,15 @@ class HardwareInterface():
                                     )])
         self.sim_out.addGeometry([GunTurret(gunPos[0, 0],
                                  gunPos[1, 0],
-                                 70, [-100, 50, 100])])
+                                 500, [-100, 50, 100])])
 
-
-    # def fireTheShot(self):
-    #     # TODO: Send a fire command to the gun to Arduino and start reloading
-    #     self.gunReady = False
-
-    # def checkTurretReady(self):
-    #     """
-    #     Check if the turret is aiming at the target
-    #     """
-    #     error = 0.02
-    #     if self.gunPath[-1][0] * (1 - error) < self.gun_config[0] < self.gunPath[-1][0] * (1 + error) and \
-    #        self.gunPath[-1][1] * (1 - error) < self.gun_config[1] < self.gunPath[-1][1] * (1 + error):
-    #         self.gunReady = True
-    #     else:
-    #         self.gunReady = False
+    def writeSimult(self, ctarg, gtarg, starg):
+        # Convert to degrees
+        self.ard.write("{},{},{},{},{}:".format(int(ctarg[0][0]*(180/np.pi)),
+                                                int(ctarg[1][0]*(180/np.pi)),
+                                                int(gtarg[0][0]*(180/np.pi)),
+                                                int(gtarg[1][0]*(180/np.pi)),
+                                                starg).encode(),)
 
     def runS(self):
         """
@@ -235,8 +230,7 @@ class HardwareInterface():
 
                 # Pop current config
                 self.cameraPath = self.cameraPath[0:3, 1:]
-            # if self.gunReady and self.gunTurretReady:
-            #     self.fireTheShot()
+
             # Display simulation.
             self.sim_out.update()
             # Hardware interface updates 50 times a second
@@ -247,7 +241,8 @@ class HardwareInterface():
         Check subscriber bus for path matrix. If path is found, clear cameraPath and replace with new path.
         If no path is found,
         """
-        self.initSerial()
+        prev_state_update = time.time()
+        state_delay = .05
 
         prev_gun_write = time.time()
         gun_write_delay = 0
@@ -255,13 +250,10 @@ class HardwareInterface():
         prev_camera_write = time.time()
         camera_write_delay = 0
 
-        t = threading.Thread(target=self.readStateR(), args=())
-        t.start()
-
         while(True):
             # Update configuration states and publish them
-            self.readStateR()
-            self.publishState()
+            if time.time() - prev_state_update >= state_delay:
+                self.publishState()
 
             # Pull path matrix from queue and replace existing matrices
             self.receivePath()
@@ -273,7 +265,13 @@ class HardwareInterface():
 
                 # Write config
                 self.writeGunR(self.gunPath[1:3, 0:1])
+                #self.gun_command = self.gunPath[1:3, 0:1]
                 prev_gun_write = time.time()
+
+                # Start firing sequence as soon as a path matrix is received
+                if self.gunPath[0][0] == 0:
+                    self.writeShootR()
+                    #self.shoot_command = 1
 
                 # Set new delay
                 if(self.gunPath.shape[1] > 1):
@@ -291,6 +289,7 @@ class HardwareInterface():
 
                 # Write config
                 self.writeCamR(self.cameraPath[1:3, 0:1])
+                #self.camera_command = self.cameraPath[1:3, 0:1]
                 prev_camera_write = time.time()
 
                 # Set new delay
@@ -303,11 +302,13 @@ class HardwareInterface():
                 # Pop current config
                 self.cameraPath = self.cameraPath[0:3, 1:]
 
-            # Hardware interface updates 50 times a second
-            time.sleep(.02)
-
     def run(self, is_sim):
         if is_sim:
             self.runS()
         else:
+            threads = []
+            self.initSerial()
+            t = threading.Thread(target=self.readStateR, args=())
+            threads.append(t)
+            t.start()
             self.runR()

@@ -184,7 +184,7 @@ class CameraTurret(Turret):
     # in configuration space: q1 = a*sin(b*(q2-c))+d
     # (0, 0) is camera turret at zero configuration
     # increasing t_elapse decreases speed of camera
-    def sweepPath(self, t_elapse, time_step = 0.1, q1_range = (-np.pi, np.pi), q2_range = (-np.pi, np.pi)):
+    def sweepPath(self, t_elapse, time_step = 0.05, q1_range = (-np.pi, np.pi), q2_range = (-np.pi, np.pi)):
         r1 = getRange(q1_range)
         r2 = getRange(q2_range)
         a = r1

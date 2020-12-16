@@ -44,7 +44,7 @@ class CameraMotion():
 			pass
 
 	def getFullSweep(self):
-		duration = 5
+		duration = 10
 		# Testing required to find q1_range and q2_range
 		# Eventually should be declared as constants
 		q_mat = self.cameraTurret.sweepPath(duration, q1_range=(-np.pi/4,np.pi/4), q2_range=(-np.pi/4,np.pi/4))
@@ -116,4 +116,5 @@ class CameraMotion():
       		# Change this function to run sweep only vs full motion mode
 			self.runSweep()
 		else:
-			self.runR()
+			# Both sim and real run sweep only for now
+			self.runSweep()

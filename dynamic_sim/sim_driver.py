@@ -22,8 +22,7 @@ def worker(type, is_sim):
     elif type == 'hardware_interface':
         hardware_interface = HardwareInterface()
         time.sleep(2)
-        #hardware_interface.run(is_sim)
-        hardware_interface.runS()
+        hardware_interface.run(is_sim)
     elif type == 'camera_motion':
         camera_motion = CameraMotion()
         time.sleep(2)
@@ -32,6 +31,7 @@ def worker(type, is_sim):
         camera_interface = CameraInterface()
         time.sleep(2)
         camera_interface.run(is_sim)
+        #camera_interface.run(False)
     elif type == 'gun_motion':
         gun_motion = GunMotion()
         time.sleep(2)
@@ -40,7 +40,7 @@ def worker(type, is_sim):
 def main():
     procs = []
 
-    is_sim = False
+    is_sim = True
 
     try:
         #p = mp.Process(target=worker, args=('example_pub', is_sim))
@@ -63,9 +63,9 @@ def main():
         procs.append(p)
         p.start()
 
-        #p = mp.Process(target=worker, args=('camera_motion', is_sim))
-        #procs.append(p)
-        #p.start()
+        p = mp.Process(target=worker, args=('camera_motion', is_sim))
+        procs.append(p)
+        p.start()
 
     except KeyboardInterrupt:
         print('Interrupted')
